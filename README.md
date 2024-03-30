@@ -16,9 +16,9 @@ Follow these steps to quickly set up and run the PRS demo:
 ```
     pip install -r prs_requirements.txt
 ```
-4. Download the Unity executable file (Ubuntu version) from [Google Drive](https://drive.google.com/file/d/1-EjHIvCVAeiMFxyY6JbjvVrzVO0xvn0m/view?usp=sharing) and save it as `unity.rar`.
+4. Download the Unity executable file (Ubuntu version) from [Google Drive](https://drive.google.com/file/d/1-EjHIvCVAeiMFxyY6JbjvVrzVO0xvn0m/view?usp=sharing) and save it as `prs_unity_demo.rar`.
 
-5. Extract the `unity.rar` file into the project folder:  
+5. Extract the `prs_unity_demo.rar` file into the project folder:  
 ```
 	unrar x prs_unity_demo.rar
 ```   
