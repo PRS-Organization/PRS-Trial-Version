@@ -243,17 +243,16 @@ class Npc(object):
             print('$$$$$not arrive: ', position_tar)
         return result_go
 
-    def go_to_place(self, tar, specific=1):
+    def go_to_place(self, tar, specific=1, rad=2, del_d=2, times=20):
         destination = self.env.landmark[tar][specific]
         print('^^^^^^^^^^^^ here will be ', destination)
         result = 0
-        result = self.goto_randomly(destination, 1.5, 10)
+        result = self.goto_randomly(destination, rad, del_d, times)
         return result
-
 
     def walk_around(self, stop_event):
         time.sleep(1)
-        for i in range(100):
+        for i in range(1000):
             if not self.server.state or stop_event.is_set() or not self.running:
                 break
             if i < 3 and False:
