@@ -1080,7 +1080,7 @@ class Planar3DOF(ERobot):
 
     def __init__(self):
         args = super().URDF_read(
-            "robot/PRS_Robot.urdf", tld=Planar3DOF.load_my_path())
+            "robot/PRS_Robot.urdf", tld="./")
 
         super().__init__(
             args[0],
