@@ -654,7 +654,7 @@ class PrsEnv(object):
         # ---------------server begin-------------------
         self.env_time = EnvTime()
         # ---------------time system ready-------------------
-        executable_path = 'unity/start.sh'
+        executable_path = 'start.sh'
         try:
             if not_test_mode:
                 # Start the Shell script using subprocess.Popen and capture stdout and stderr
