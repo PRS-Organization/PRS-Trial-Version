@@ -10,7 +10,6 @@ Follow these steps to quickly set up and run the PRS demo:
 ```
     git clone https://github.com/PRS-Organization/PRS-Trial-Version.git
 ```  
-
 2. Ensure you have a Python virtual environment (Python version >= 3.9) activated.
 
 3. Install the required Python packages:  
@@ -20,19 +19,21 @@ Follow these steps to quickly set up and run the PRS demo:
 4. Download the Unity executable file (Ubuntu version) from [Google Drive](https://drive.google.com/file/d/1-EjHIvCVAeiMFxyY6JbjvVrzVO0xvn0m/view?usp=sharing) and save it as `unity.rar`.
 
 5. Extract the `unity.rar` file into the project folder:  
-	```unrar x prs_unity_demo.rar```   
+```
+	unrar x prs_unity_demo.rar
+```   
 Note: This should create a `unity` folder. Give it necessary permissions:  
-	```sudo chmod 777 -R unity```
-
-
+```
+	sudo chmod 777 -R unity
+```
 6. Start running the demo:  
-	```python prs_demo.py```     
-
-
+```
+	python prs_demo.py
+```     
 7. If you encounter a port occupation error, run:  
-	```bash clean_port.sh```
-
-
+```
+	bash clean_port.sh
+```
 8. After running the Python script, you can open another terminal and execute ```start.sh``` or directly run `unity/PRS.x86_64`.
 
 9. Wait a few seconds for Unity to render the graphics.
@@ -48,4 +49,5 @@ Note: In this version, there's no function to end the environment due to its lon
 12. Please note that this is just a test demo, and there is no interactive behavior in the environment.
 
 Stay tuned for the upcoming complete API documentation and task benchmarks!
+
 
