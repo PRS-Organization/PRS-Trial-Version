@@ -196,6 +196,8 @@ class Npc(object):
         floor, point_list = self.server.maps.get_an_accessible_area(position_tar[0], position_tar[1], position_tar[2], radius)
         result_go = 0
         for i_try in range(times):
+            if not self.running or self.server.stop_event.is_set() or not self.server.state:
+                break
             length = len(point_list)
             if length < 1:
                 break
@@ -209,11 +211,14 @@ class Npc(object):
             position_go = (pos_i, self.server.maps.floors[floor], pos_j)
             print(' now plan to {}'.format(position_go))
             for i in range(2):
+                if not self.running or self.server.stop_event.is_set() or not self.server.state:
+                    break
                 action_id = self.go_to_here(position_go)
                 result = 0
                 while True:
                     time.sleep(0.5)
-                    if not self.running: break
+                    if not self.running or self.server.stop_event.is_set() or not self.server.state:
+                        break
                     try:
                         if self.server.notes[action_id]['informResult'] == 2:
                             result = self.server.notes[action_id]['informResult']
@@ -250,10 +255,10 @@ class Npc(object):
         result = self.goto_randomly(destination, rad, del_d, times)
         return result
 
-    def walk_around(self, stop_event):
+    def walk_around(self):
         time.sleep(1)
         for i in range(1000):
-            if not self.server.state or stop_event.is_set() or not self.running:
+            if not self.server.state or self.server.stop_event.is_set() or not self.running:
                 break
             if i < 3 and False:
                 continue
@@ -285,7 +290,7 @@ class Npc(object):
         # second = self.times.current_date.second
         return week, hour, minute
 
-    def continuous_simulation(self, stop_event, length=10):
+    def continuous_simulation(self, length=10):
         npc_day = {0: [
             # 'id': 0, "schedule":
             ['exercise', 'hallway'], ['stand', 'bedroom'], ['stand', 'bedroom'], ['stand', 'bedroom'],
@@ -343,7 +348,7 @@ class Npc(object):
             week, hour, min = self.get_now_time()
             print('############ now is {} '.format(week), hour, min)
             self.one_day(npc_day[self.person_id])
-            if not self.server.state or stop_event.is_set() or not self.running:
+            if not self.server.state or self.server.stop_event.is_set() or not self.running:
                 break
             while True:
                 week_n, hour_n, min_n = self.get_now_time()

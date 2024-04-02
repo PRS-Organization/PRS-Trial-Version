@@ -13,3 +13,6 @@ if __name__ == '__main__':
     # robot navigate to floor3 point (130, 120)
     # API document come soon!
     map_room = prs.server.maps.floor3
+
+    time.sleep(60)
+    prs.finish_env()

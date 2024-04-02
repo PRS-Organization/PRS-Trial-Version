@@ -78,7 +78,8 @@ class MsgCmd(Enum):
 
 
 class Server(object):
-    def __init__(self):
+    def __init__(self, stop_event):
+        self.stop_event = stop_event
         self.state = 1
         self.clients = []
         self.messages = []
@@ -104,7 +105,7 @@ class Server(object):
         self.notes = {}
 
 
-    def wait_for_connection(self, stop_event):
+    def wait_for_connection(self):
         while True:
             try:
                 now_client, addr = self.sock.accept()
@@ -113,8 +114,7 @@ class Server(object):
                 print(self.state, self.state, self.state)
                 now_client.settimeout(300)
                 self.clients.append([addr, now_client])
-            except:
-                pass
+            except: pass
             for index_client,n_client in enumerate(self.clients):
                 # result = self.sock.connect_ex(n_client)
                 try:
@@ -125,26 +125,27 @@ class Server(object):
                     print(e, n_client[0], 'Connected closed')
                     try:
                         self.clients.remove(n_client)
+                        if len(self.clients)==0 and self.state==2:
+                            self.state = 0
+                            self.stop_event.set()
                     except:
                         pass
-            if not self.state or stop_event.is_set():
+            if not self.state or self.stop_event.is_set():
                 print(self.state, 'No waiting for connection')
                 self.sock.close()
                 break
             if len(self.clients):
-                time.sleep(1)
+                time.sleep(0.5)
             else:
                 time.sleep(0.01)
 
     def check_connection(self):
         pass
-        # for i in range(2):
-        #     for index_client, n_client in enumerate(self.clients):
-        #         # result = self.sock.connect_ex(n_client)
-        #         try:
-        #             rrr = n_client[1].recv(1024)
-        #             result = n_client[1].getsockname()
-        #             r = n_client[1].getpeername()
+    #     for index_client, n_client in enumerate(self.clients):
+    #         # result = self.sock.connect_ex(n_client)
+    #         rrr = n_client[1].recv(1024)
+    #         result = n_client[1].getsockname()
+    #         r = n_client[1].getpeername()
 
 
     def handle_data(self, n_client):
@@ -167,9 +168,9 @@ class Server(object):
         # self.send_back({'result': 1})
         return 1
 
-    def message_process(self, stop_event):
+    def message_process(self):
         while True:
-            if not self.state or stop_event.is_set():
+            if not self.state or self.stop_event.is_set():
                 print(self.state, 'no process')
                 break
             if len(self.messages) > 0:
@@ -182,10 +183,9 @@ class Server(object):
                     finally:
                         del self.messages[msg_i]
 
-    def receive_data(self, stop_event):
+    def receive_data(self):
         while True:
-            self.check_connection()
-            # print(1)
+            # self.check_connection()
             for n_client in self.clients:
                 try:
                     # Processing received message
@@ -194,10 +194,13 @@ class Server(object):
                     print(e, n_client[0], 'Connected closed')
                     try:
                         self.clients.remove(n_client)
+                        if len(self.clients) == 0 and self.state == 2:
+                            self.state = 0
+                            self.stop_event.set()
                     except:
                         pass
 
-            if not self.state or stop_event.is_set():
+            if not self.state or self.stop_event.is_set():
                 print(self.state, 'Connection closed')
                 self.sock.close()
                 break
@@ -223,6 +226,8 @@ class Server(object):
                     print(e, n_client[0])
                     try:
                         self.clients.remove(n_client)
+                        if len(self.clients) == 0:
+                            self.state = 0
                     except: pass
         return False
 
@@ -343,24 +348,22 @@ class Server(object):
         else:
             return False  # No longer receiving messages
 
-    def env_finish(self, process, stop_event, npcs):
-        process.terminate()
-        server.send_data(0, {"requestIndex": 10, "actionId": 1}, 0)
+    def env_finish(self, process, npcs):
+        if process:
+            process.terminate()
+            # Waiting for the process to end (optional, but recommended)
+            process.wait()
+        self.send_data(0, {"requestIndex": 10, "actionId": 1}, 0)
         # movement demo
         print('00100')
-        server.state = None
+        self.state = 0
         for npc in npcs:
             npc.running = 0
-        stop_event.set()
+        self.stop_event.set()
         self.sock.close()
-        # process.terminate()
-        # Waiting for the process to end (optional, but recommended)
-        process.wait()
-        print(server.state, type(server.state))
+        print(self.state, type(self.state))
         print(threading.active_count(), ' ---11111111111111111111')
-        time.sleep(10)
-        print(threading.active_count(), ' ---11111111111111111111')
-        time.sleep(10)
+        time.sleep(5)
         print(threading.active_count(), ' ---11111111111111111111')
 
 
@@ -642,18 +645,19 @@ class PrsEnv(object):
         if not is_print:
             dev_null = DevNull()
             sys.stdout = dev_null
-        self.server = Server()
         self.stop_event = threading.Event()
+        self.server = Server(self.stop_event)
         self.npc_running, self.time_running, self.agent_running = 0, 0, 0
-        connection_thread = threading.Thread(target=self.server.wait_for_connection, args=(self.stop_event,))
-        receive_thread = threading.Thread(target=self.server.receive_data, args=(self.stop_event,))
-        parsing_thread = threading.Thread(target=self.server.message_process, args=(self.stop_event,))
+        connection_thread = threading.Thread(target=self.server.wait_for_connection, args=())
+        receive_thread = threading.Thread(target=self.server.receive_data, args=())
+        parsing_thread = threading.Thread(target=self.server.message_process, args=())
         connection_thread.start()
         receive_thread.start()
         parsing_thread.start()
         # ---------------server begin-------------------
         self.env_time = EnvTime()
         # ---------------time system ready-------------------
+        self.process = 0
         executable_path = 'start.sh'
         try:
             if not_test_mode:
@@ -704,11 +708,17 @@ class PrsEnv(object):
             for npc_i, npc in enumerate(self.npcs):
                 if npc_i == number:
                     break
-                # running_thread = threading.Thread(target=npc.continuous_simulation, args=(self.stop_event,))
-                running_thread = threading.Thread(target=npc.walk_around, args=(self.stop_event,))
+                # running_thread = threading.Thread(target=npc.continuous_simulation, args=())
+                running_thread = threading.Thread(target=npc.walk_around, args=())
                 running_thread.start()
             self.npc_running = 1
 
+    def finish_env(self):
+        print('========== Env end ==========')
+        self.stop_event.set()
+        self.server.env_finish(self.process, self.npcs)
+        exit(0)
+        
 
 if __name__ == '__main__':  # pragma nocover
     server = Server()
