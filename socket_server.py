@@ -212,7 +212,7 @@ class Server(object):
             for n_client in self.clients:
                 self.check_connection()
                 try:
-                    if cmd < 7:
+                    if cmd < 8:
                         data['requestIndex'] = self.count
                         self.count = self.count + 1
                     elif cmd == 0:
@@ -718,7 +718,13 @@ class PrsEnv(object):
         self.stop_event.set()
         self.server.env_finish(self.process, self.npcs)
         exit(0)
-        
+
+    def sim_speed(self, speed):
+        instruction = {"requestIndex": 1, "timeScale": speed}
+        action_id = self.server.send_data(7, instruction, 1)
+        self.env_time.time_multiplier *= speed
+        return self.env_time.time_multiplier
+
 
 if __name__ == '__main__':  # pragma nocover
     server = Server()

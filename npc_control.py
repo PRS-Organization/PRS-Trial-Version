@@ -356,14 +356,13 @@ class Npc(object):
                     print('---------hey folks, new day is coming --------')
                     break
 
-
     def one_day(self, a_day):
         # Get hours, minutes, and seconds
         week, hour, min = self.get_now_time()
         print('############now ', hour, min)
         while hour < 23:
             week, hour_now, min = self.get_now_time()
-            if not self.server.state or not self.running:
+            if not self.server.state or self.server.stop_event.is_set() or not self.running:
                 break
             if hour_now != hour or min > 55:
                 hour = hour_now
@@ -803,9 +802,14 @@ class Agent(object):
             print('$$$$$not arrive: ', position_tar)
         return result_go
 
-    def observation_camera_head(self):
-        ins = {"requestIndex": 1, "actionId": 13}
-        ins = {"requestIndex": 1, "actionId": 201, "actionPara": {'height': 640, 'width': 480}}
+    def observation_camera_head(self, camera_type=0):
+        #  0 head camera, 1 hand camera
+        c_type = 13
+        if camera_type == 0:
+            c_type = 13
+        elif camera_type == 1:
+            c_type = 14
+        ins = {"requestIndex": 1, "actionId": c_type, "actionPara": {'height': 640, 'width': 480}}
         # new instruction
         action_id = self.server.send_data(5, ins, 1)
         for ii in range(60):
