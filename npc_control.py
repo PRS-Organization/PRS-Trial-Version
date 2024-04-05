@@ -802,7 +802,7 @@ class Agent(object):
             print('$$$$$not arrive: ', position_tar)
         return result_go
 
-    def observation_camera_head(self, camera_type=0):
+    def observation_camera(self, camera_type=0):
         #  0 head camera, 1 hand camera
         c_type = 13
         if camera_type == 0:
