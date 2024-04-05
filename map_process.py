@@ -48,7 +48,6 @@ class RoomMap(object):
         #     ind = 1
         # else:
         #     ind = 0
-        # print(y, ind, value, self.floors)
         point_i, point_j = self.get_grid_position(ind, x, z)
         return ind, point_i, point_j, self.maps_info[ind]['grid'][point_i][point_j]
 
@@ -71,13 +70,13 @@ class RoomMap(object):
         print(floor, map_i, map_j, is_obstacle)
 
         radius = radius_meter / self.maps_info[floor]['scale']
-        # 确定查询域范围
+        # Determine the scope of the query domain
         min_i, max_i = round(max(0, map_i - radius)), round(min(map_array.shape[0] - 1, map_i + radius))
         min_j, max_j = round(max(0, map_j - radius)), round(min(map_array.shape[1] - 1, map_j + radius))
         # print(min_i, max_i, min_j, max_j)
-        # 找到在指定半径内的可行点
+        # Find feasible points within the specified radius
         valid_points = []
-        # 找到在指定半径内的可行点，并排除距离障碍物为1的点
+        # exclude points with a distance of 1 from obstacles
         valid_points = []
         for i in range(min_i, max_i + 1):
             for j in range(min_j, max_j + 1):
@@ -89,22 +88,15 @@ class RoomMap(object):
                                 too_close_to_obstacle = True
                     if not too_close_to_obstacle:
                         valid_points.append((i, j))
-        # 计算每个可行点到给定点的距离
+        # Calculate the distance from each feasible point to a given point
         distances = [np.sqrt((i - map_i) ** 2 + (j - map_j) ** 2) for i, j in valid_points]
-        # 按照距离从小到大对可行点进行排序
+        # Sort feasible points in ascending order of distance
         sorted_valid_points = [point for _, point in sorted(zip(distances, valid_points))]
         print('here: ', len(sorted_valid_points), ' in radius ', radius_meter, ', scale', self.maps_info[floor]['scale'])
         return floor, sorted_valid_points
 
-
-
-
-
     def add_room(self, json_data):
-    # parsing map information
-    # Json: {"requestIndex": 101,
-    # "statusDetail": "{\"mapId\":1,\"mapName\":\"F3\",\"width\":103,\"height\":136,\"accuracy\":0.5,\
-    # "minPoint\":{\"x\":-19.94000244140625,\"y\":-0.0499998964369297,\"z\":-59.400001525878909},\"points\"
+        # parsing map information
         map_id = json_data['mapId']
         floor = json_data['mapName']
         width = json_data['width']
@@ -112,29 +104,23 @@ class RoomMap(object):
         points = json_data['points']
         scale = json_data['accuracy']
         positions = json_data['minPoint']
-        # print(position)
         n_length = scale
-        # x, y = json_data['x'], json_data['y']
         x, y = 0, 0
-        # 创建二维矩阵地图
-        # 解析 points 并将点的信息添加到地图矩阵中
+        # Create a 2D matrix map
+        # Analyze points and add point information to the map matrix
         n = 0
         map_data = []
         xx, yy = [], []
         # json_m = {"mapId": 1, "mapName": "F3", "width": 51, "height": 68, "accuracy": 1.0, "points": []}
-
         po = eval(points)
-        # print(type(po))
         for point in points:
             # point_data = json.loads(point)
             map_data.append(1)
         matrix = [[0 for _ in range(height)] for _ in range(width)]
         navMapPoints = [[None for _ in range(height)] for _ in range(width)]
-        # print(len(matrix), len(matrix[0]))
         for i in range(width):
             for j in range(height):
                 index = i * height + j
-                # print(type(map_data),type(matrix))
                 matrix[i][j] = map_data[index]
                 navMapPoints[i][j] = {"x": x + i * n_length, "y": y + j * n_length, "data": map_data[index]}
         flag = None
@@ -147,11 +133,6 @@ class RoomMap(object):
         elif floor == 'F3':
             self.floor3 = po
             flag = 2
-
-        # print('^^^^^^^^^{}'.format(floor))
-        # plt.imshow(po, cmap='gray')
-        # plt.title(json_data['mapName'])
-        # plt.grid(False)
         # plt.show()
         self.maps_info[flag]['scale'] = scale
         self.maps_info[flag]['width'] = width
@@ -162,13 +143,10 @@ class RoomMap(object):
         self.maps_info[flag]['z0'] = positions['z']
         self.floors[flag] = positions['y']
         # matrix_map = np.array(map_data).reshape((width, height))
-        # 将所有值统一转换为大于等于0的值
-        # 创建并初始化矩阵
+        # Convert all values uniformly to values greater than or equal to 0
+        # Create and initialize matrix
         # matrix = [[0 for _ in range(max_y)] for _ in range(max_x)]
-        # if floor == 'F3':
-        #     plt.imshow(po, cmap='gray')
-        #     plt.title(json_data['mapName'])
-        #     plt.show()
+
     def draw(self, i, n, j):
         if isinstance(n, int) and isinstance(i, int) and isinstance(j, int):
             pass

@@ -725,6 +725,12 @@ class PrsEnv(object):
         self.env_time.time_multiplier *= speed
         return self.env_time.time_multiplier
 
+    def object_query(self, obj_id=0):
+        instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
+        r_id = self.server.send_data(2, instruction, 1)
+        object_info = self.agent.wait_for_respond(r_id, 30)
+        return object_info
+
 
 if __name__ == '__main__':  # pragma nocover
     server = Server()

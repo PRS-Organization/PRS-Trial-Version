@@ -642,7 +642,6 @@ class Agent(object):
             x, y, z = pos_world['x'], pos_world['y'], pos_world['z']
         except:
             pos_world = {'position': {'x': pos_world[0], 'y': pos_world[1], 'z': pos_world[2]}}
-        print(pos_world)
         pos_transform = {"requestIndex": 1, "actionId": 201, "actionPara": json.dumps(pos_world)}
         # ----------------- get the object information-----------------
         r_id = self.server.send_data(5, pos_transform, 1)
@@ -650,7 +649,7 @@ class Agent(object):
         if not obj_info1:
             return 0
         pos_relative = eval(obj_info1['information'])['position']
-        print(obj_info1, '---------------------------IK relative position----------------------')
+        print(obj_info1, '---------IK relative position---')
         joint_targets = self.ik_process(pos_relative['x'], 0, pos_relative['z'])
         return joint_targets
 
@@ -659,7 +658,7 @@ class Agent(object):
                           "actionPara": json.dumps({'result': 1, 'data': joints_tar})}
         r_id = self.server.send_data(5, target_execute, 1)
         robot_info1 = self.wait_for_respond(r_id, 30)
-        print(robot_info1, '-===-=---------IK perform')
+        print(robot_info1, '======---------IK perform')
 
     def grasp_object(self, obj_id):
         grasp_execute = {"requestIndex": 1, "actionId": 4, "actionPara": json.dumps({'itemId': obj_id})}
