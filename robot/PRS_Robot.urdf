@@ -29,7 +29,7 @@
         <parent link="link_body" />
         <child link="base_link"/>
         <axis xyz="1 0 0" />
-        <limit effort="30" velocity="1.0" lower="-0.5" upper="0.5" />
+        <limit effort="30" velocity="1.0" lower="-0.8" upper="0.8" />
     </joint>
 
 
@@ -74,7 +74,7 @@
         <parent link="shoulder_link" />
         <child link="link_big"/>
          <axis xyz="0 1 0" />
-        <limit effort="30" velocity="1.7" lower="-0.5" upper="1" />
+        <limit effort="30" velocity="1.7" lower="-0.5" upper="1.5" />
     </joint>
 
         <!-- link_small -->
@@ -96,7 +96,7 @@
         <parent link="link_big" />
         <child link="link_small"/>
          <axis xyz="0 1 0" />
-        <limit effort="30" velocity="2.0" lower="-0.0" upper="1" />
+        <limit effort="30" velocity="2.0" lower="-0.0" upper="2" />
     </joint>
 
     <!-- link_hand - change here to change the end effector-->
@@ -118,7 +118,7 @@
         <parent link="link_small" />
         <child link="link_hand"/>
         <axis xyz="0 1 0" />
-        <limit effort="30" velocity="1.6" lower="-1.6" upper="1.0" />
+        <limit effort="30" velocity="1.6" lower="-1.6" upper="1.6" />
 
     </joint>
 
