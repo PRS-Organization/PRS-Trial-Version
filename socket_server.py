@@ -88,12 +88,25 @@ class Server(object):
         self.sock = socket(AF_INET, SOCK_STREAM)
         # 2. Prepare to connect to the server and establish a connection
         serve_ip = 'localhost'
-        serve_port = 8000  # 端口，比如8000
+        serve_port = 8000  # search for available port starting from 8000
         # tcp_socket.connect((serve_ip,serve_port))
         # Connect to the server, establish a connection, with parameters in tuple form
         tcp_address = ('localhost', 8000)
         # Provide a mechanism for checking ports
-        self.sock.bind(tcp_address)
+        sock_result = 0
+        while not sock_result:
+            try:
+                self.sock.bind(tcp_address)
+                sock_result = 1
+            except:
+                serve_port += 1
+                tcp_address = ('localhost', serve_port)
+        with open('unity/PRS_Data/StreamingAssets/config.json', 'r') as file:
+            env_data = json.load(file)
+        env_data["serverConnectionPort"] = serve_port
+        with open('unity/PRS_Data/StreamingAssets/config.json', 'w') as file:
+            json.dump(env_data, file)
+        print('server started: ', str(tcp_address))
         MAX_CONNECTION = 100
         # Start listening for connections
         self.sock.listen(MAX_CONNECTION)
