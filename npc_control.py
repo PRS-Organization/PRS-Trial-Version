@@ -963,7 +963,6 @@ class Agent(object):
         result = self.joint_control(5, rotation_angle)
         return result
 
-
     def calculate_distance(self, x_x, y_y):
         point1 = np.array([self.position_agent['x'], self.position_agent['y']])
         point2 = np.array([x_x, y_y])
@@ -979,17 +978,18 @@ class Agent(object):
         else:
             return res.tolist()
 
-    def input_pos(self, robot, x, y, z, phi=0, theta=1.25, psi=0, plot=0):
+    def input_pos(self, robot, x, y, z, phi=0, theta=0, psi=0, plot=0):
         A = eul2r(phi, theta, psi)
         # Representing the rotational Euler angle
         # [0.5, 0, 1.87]
         t = [x, y, z]
+        if phi == 0 and theta == 0 and psi == 0:
+            A = self.rotation_matrix(t[0], t[1], t[2])
         # The rotation Euler angle represents the displacement on the x, y, and z axes
         AT = SE3.Rt(A, t)
         # AT represents the 4 * 4 transformation matrix of the end effector
         sol = robot.ik(AT)
         print(sol)
-        # print(sol[0])
         # print(robot.fkine([-0.11530289, 0.3, 0.24709773, 0.42730769, 0.72559458]))
         # print(eul2r(0.3, 1.4, 0.02))
         if sol[1]:
@@ -999,6 +999,34 @@ class Agent(object):
                 time.sleep(20)
             return sol[0]
         return np.array([-1])
+
+    def rotation_matrix(self, x, y, z):
+        # print('hypotenuse and length of robot arm limit')return None
+        print(x, y, z)
+        if x < -0.4:
+            x = -0.4
+        elif x > 0.5:
+            x = 0.5
+        if 0.2 > z:
+            z = 0.2
+        elif 1.0 < z:
+            z = 1.05
+        if y < -0.5:
+            y = -0.5
+        elif y > 0.5:
+            y = 0.5
+        elif abs(y) < 0.03:
+            y = 0
+        hypotenuse = np.sqrt(y ** 2 + z ** 2)
+        if hypotenuse > 1.01:
+            z = np.sqrt(1.05 - y ** 2)
+        a, b, c = -2.222439753175887, 0.7599754447016618, 1.981407645745737
+        theta = a * z ** 2 + b * z + c
+        phi = y * 4
+        # print(x, y, z, '!!!', phi, theta)
+        return eul2r(phi, theta, 0)
+
+
 def astar(start, goal, map_matrix, list1, list2, queue, initial_direction=(1, 0)):
 
     def heuristic(node, is_start):
