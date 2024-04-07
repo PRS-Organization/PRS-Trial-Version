@@ -742,6 +742,8 @@ class PrsEnv(object):
         instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
         r_id = self.server.send_data(2, instruction, 1)
         object_info = self.agent.wait_for_respond(r_id, 30)
+        if object_info:
+            object_info = eval(object_info['statusDetail'])
         return object_info
 
 

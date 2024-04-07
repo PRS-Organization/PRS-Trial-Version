@@ -190,7 +190,13 @@ class Npc(object):
             # else:
         return False, info
 
-         # 'statusDetail': '{"npcId":0,"npcName":"Npc_CasualMale","position":{"x":-0.8811914920806885,"y":-0.030998993664979936,"z":0.013134002685546875},"diretion":{"x":-0.13891959190368653,"y":0.0,"z":0.990303635597229},"closeRangeItemIds":[]}'}
+    def query_information(self):
+        pos, info = self.where_npc()
+        datas = None
+        if pos:
+            datas = eval(info['statusDetail'])
+            obj_closed = datas['closeRangeItemIds']
+        return pos, datas
 
     def goto_randomly(self, position_tar, radius=1.5, delete_dis=3, times=10):
         floor, point_list = self.server.maps.get_an_accessible_area(position_tar[0], position_tar[1], position_tar[2], radius)
