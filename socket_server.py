@@ -21,7 +21,6 @@ import datetime
 from multiprocessing import Process, Queue, Value, Lock
 
 
-
 class EnvTime(object):
     def __init__(self, speed=120, year=2025, month=3, day=12, hour=6, minute=50, second=0, end=2050):
         # Define start date. At a rate of speed(120) times
@@ -159,7 +158,6 @@ class Server(object):
     #         rrr = n_client[1].recv(1024)
     #         result = n_client[1].getsockname()
     #         r = n_client[1].getpeername()
-
 
     def handle_data(self, n_client):
         # receive message from client -> information process
@@ -338,7 +336,7 @@ class Server(object):
                 if len(self.dataBuffer) < self.headerSize:
                     # print("Packet (% s Byte) is smaller than the length of the message header, causing a small loop to break out" % len(self.dataBuffer))
                     break
-                # struct中:!代表Network order，3I represents 3个unsigned int
+                # struct: represent Network order，3I represents 3个unsigned int
                 # msg_length = struct.unpack("I", bytearray(msg[:4]))[0]
                 # Obtain information length
                 headPack = struct.unpack('3I', bytearray(self.dataBuffer[:self.headerSize]))
