@@ -640,6 +640,7 @@ class Agent(object):
     def ik_calculation(self, pos_world):
         try:
             x, y, z = pos_world['x'], pos_world['y'], pos_world['z']
+            pos_world = {'position': {'x': x, 'y': y, 'z': z}}
         except:
             pos_world = {'position': {'x': pos_world[0], 'y': pos_world[1], 'z': pos_world[2]}}
         pos_transform = {"requestIndex": 1, "actionId": 201, "actionPara": json.dumps(pos_world)}
@@ -983,10 +984,11 @@ class Agent(object):
         # Representing the rotational Euler angle
         # [0.5, 0, 1.87]
         t = [x, y, z]
-        if phi == 0 and theta == 0 and psi == 0:
-            A = self.rotation_matrix(t[0], t[1], t[2])
-        # The rotation Euler angle represents the displacement on the x, y, and z axes
         AT = SE3.Rt(A, t)
+        if phi == 0 and theta == 0 and psi == 0:
+            AT = self.rotation_matrix(t[0], t[1], t[2])
+        # The rotation Euler angle represents the displacement on the x, y, and z axes
+        # AT = SE3.Rt(A, t)
         # AT represents the 4 * 4 transformation matrix of the end effector
         sol = robot.ik(AT)
         print(sol)
@@ -1024,7 +1026,10 @@ class Agent(object):
         theta = a * z ** 2 + b * z + c
         phi = y * 4
         # print(x, y, z, '!!!', phi, theta)
-        return eul2r(phi, theta, 0)
+        A = eul2r(phi, theta, 0)
+        t = [x, y, z]
+        AT = SE3.Rt(A, t)
+        return AT
 
 
 def astar(start, goal, map_matrix, list1, list2, queue, initial_direction=(1, 0)):
