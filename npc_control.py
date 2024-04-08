@@ -199,7 +199,11 @@ class Npc(object):
         return pos, datas
 
     def goto_randomly(self, position_tar, radius=1.5, delete_dis=3, times=10):
-        floor, point_list = self.server.maps.get_an_accessible_area(position_tar[0], position_tar[1], position_tar[2], radius)
+        try:
+            xx, yy, zz = position_tar[0], position_tar[1], position_tar[2]
+        except:
+            xx, yy, zz = position_tar['x'], position_tar['y'], position_tar['z']
+        floor, point_list = self.server.maps.get_an_accessible_area(xx, yy, zz, radius)
         result_go = 0
         for i_try in range(times):
             if not self.running or self.server.stop_event.is_set() or not self.server.state:
@@ -297,7 +301,7 @@ class Npc(object):
             for item_id in items:
                 item_info = self.object_data.objects[item_id]
                 if not item_info['isOccupied']:
-                    if target in item_info['features']:
+                    if target.lower() in item_info['features'].lower():
                         item_info = self.server.object_query(item_id)
                         all_obj.append(item_info)
         else:
@@ -811,8 +815,12 @@ class Agent(object):
         return re_id
 
     def goto_target_goal(self, position_tar, radius=1, delete_dis=3, times=6, position_mode=0):
-        # position_tar:(0.5, 0.1, 1.2)
-        floor, point_list = self.server.maps.get_an_accessible_area(position_tar[0], position_tar[1], position_tar[2], radius, position_mode)
+        # 0 (world pos) position_tar:(0.5, 0.1, 1.2), 1: (x=floor_n, y=map_i, z=map_j)
+        try:
+            xx, yy, zz = position_tar[0], position_tar[1], position_tar[2]
+        except:
+            xx, yy, zz = position_tar['x'], position_tar['y'], position_tar['z']
+        floor, point_list = self.server.maps.get_an_accessible_area(xx, yy, zz, radius, position_mode)
         result_go = 0
         for i_try in range(times):
             length = len(point_list)
