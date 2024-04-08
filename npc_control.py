@@ -299,7 +299,7 @@ class Npc(object):
                 item_info = self.object_data.objects[item_id]
                 if not item_info['isOccupied']:
                     if target in item_info['features']:
-                        item_info = self.obj_query(item_id)
+                        item_info = self.object_query(item_id)
                         all_obj.append(item_info)
         else:
             return 0
@@ -312,21 +312,6 @@ class Npc(object):
         pos = target_obj['position']
         res = self.goto_randomly(pos, 1, 2, 10)
         return res
-
-    def obj_query(self, obj_id=0):
-        instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
-        r_id = self.server.send_data(2, instruction, 1)
-        object_info = None
-        for ii in range(30):
-            time.sleep(0.1)
-            try:
-                object_info = self.server.notes[r_id]
-                break
-            except:
-                pass
-        if object_info:
-            object_info = eval(object_info['statusDetail'])
-        return object_info
 
     def get_now_time(self):
         week = self.times.weekday_now()

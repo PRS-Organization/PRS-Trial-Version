@@ -359,6 +359,22 @@ class Server(object):
         else:
             return False  # No longer receiving messages
 
+    def object_query(self, obj_id=0):
+        instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
+        r_id = self.send_data(2, instruction, 1)
+        object_info = None
+        for ii in range(30):
+            time.sleep(0.1)
+            try:
+                object_info = self.notes[r_id]
+                break
+            except:
+                pass
+        if object_info:
+            object_info = eval(object_info['statusDetail'])
+        return object_info
+
+
     def env_finish(self, process, npcs):
         if process:
             process.terminate()
