@@ -291,7 +291,6 @@ class Npc(object):
 
     def go_to_object(self, target='Seat', random_mode=1):
         pos, npc_info = self.query_information()
-        print(npc_info)
         items = npc_info['closeRangeItemIds']
         all_obj = []
         if len(items) != 0:
@@ -299,7 +298,7 @@ class Npc(object):
                 item_info = self.object_data.objects[item_id]
                 if not item_info['isOccupied']:
                     if target in item_info['features']:
-                        item_info = self.object_query(item_id)
+                        item_info = self.server.object_query(item_id)
                         all_obj.append(item_info)
         else:
             return 0
