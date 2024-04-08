@@ -922,8 +922,8 @@ class Agent(object):
         object_info = eval(obj_info['information'])
         return object_info["nearby"]
 
-    def go_to_target_object(self, name='Apple_what_your_nee', feature='Grabable_what_your_need', random_mode=1):
-        # pos, npc_info = self.query_information()
+    def go_to_target_object(self, name='Apple_what_your_nee', feature='Grabable_what_your_need', distance=1,
+                            random_mode=1):
         items = self.query_near_objects()
         all_objs = []
         if len(items) != 0:
@@ -943,7 +943,7 @@ class Agent(object):
         else:
             target_obj = all_objs[0]
         pos = target_obj['position']
-        res = self.goto_target_goal(pos, 1, 3, 10)
+        res = self.goto_target_goal(pos, distance, 3, 10)
         return res
 
     def navigate(self, map_floor, goal):
