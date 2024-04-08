@@ -705,11 +705,13 @@ class Agent(object):
         r_id = self.server.send_data(5, target_execute, 1)
         robot_info1 = self.wait_for_respond(r_id, 300)
         print(robot_info1, '======---------IK perform')
+        return robot_info1
 
     def grasp_object(self, obj_id):
         grasp_execute = {"requestIndex": 1, "actionId": 4, "actionPara": json.dumps({'itemId': obj_id})}
         r_id = self.server.send_data(5, grasp_execute, 1)
         robot_info2 = self.wait_for_respond(r_id, 30)
+        return robot_info2
 
     def joint_control(self, joint_id, target):
         target = np.radians(target)
@@ -747,19 +749,17 @@ class Agent(object):
                 print('~~~~~~~~~~~~~~~~', e, '---', len(self.server.notes), r_id)
         # Record End Time
         end_time = time.time()
-
         # Calculate the running time of function A
         execution_time = end_time - start_time
-        print("函数 A 运行时间：", execution_time, "秒")
+        print("function A ：", execution_time, "s")
         return 1
 
     def rotate_right(self, degree=10):
         ins = {"requestIndex": 1, "actionId": 1, "actionPara": {"degree": degree}}
         ins['actionPara'] = json.dumps(ins['actionPara'])
         r_id = self.server.send_data(5, ins, 1)
-        res = self.wait_for_respond(r_id, 30)
-        time.sleep(1.5)
-        return  res
+        res = self.wait_for_respond(r_id, 60)
+        return res
 
     def get_all_map(self):
         # self.server.ma
