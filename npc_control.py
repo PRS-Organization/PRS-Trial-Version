@@ -664,7 +664,7 @@ class Agent(object):
         target_execute = {"requestIndex": 1, "actionId": 3,
                           "actionPara": json.dumps({'result': 1, 'data': joints_tar})}
         r_id = self.server.send_data(5, target_execute, 1)
-        robot_info1 = self.wait_for_respond(r_id, 30)
+        robot_info1 = self.wait_for_respond(r_id, 300)
         print(robot_info1, '======---------IK perform')
 
     def grasp_object(self, obj_id):
@@ -676,7 +676,7 @@ class Agent(object):
         target = np.radians(target)
         target_execute = {"requestIndex": 1, "actionId": 2, "actionPara": json.dumps({'jointId': joint_id, 'data': target})}
         r_id = self.server.send_data(5, target_execute, 1)
-        robot_info = self.wait_for_respond(r_id, 30)
+        robot_info = self.wait_for_respond(r_id, 100)
         if robot_info:
             return 1
         return 0
