@@ -289,6 +289,45 @@ class Npc(object):
             # print('$$$$$arrive: ', pos)
             time.sleep(0.5)
 
+    def go_to_object(self, target='Seat', random_mode=1):
+        pos, npc_info = self.query_information()
+        print(npc_info)
+        items = npc_info['closeRangeItemIds']
+        all_obj = []
+        if len(items) != 0:
+            for item_id in items:
+                item_info = self.object_data.objects[item_id]
+                if not item_info['isOccupied']:
+                    if target in item_info['features']:
+                        item_info = self.obj_query(item_id)
+                        all_obj.append(item_info)
+        else:
+            return 0
+        if len(all_obj) == 0:
+            return 0
+        if random_mode == 1:
+            target_obj = np.random.choice(all_obj)
+        else:
+            target_obj = all_obj[0]
+        pos = target_obj['position']
+        res = self.goto_randomly(pos, 1, 2, 10)
+        return res
+
+    def obj_query(self, obj_id=0):
+        instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
+        r_id = self.server.send_data(2, instruction, 1)
+        object_info = None
+        for ii in range(30):
+            time.sleep(0.1)
+            try:
+                object_info = self.server.notes[r_id]
+                break
+            except:
+                pass
+        if object_info:
+            object_info = eval(object_info['statusDetail'])
+        return object_info
+
     def get_now_time(self):
         week = self.times.weekday_now()
         hour = self.times.current_date.hour
