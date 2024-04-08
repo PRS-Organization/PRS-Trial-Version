@@ -575,6 +575,7 @@ class Agent(object):
         self.object_data = objects
         self.times = env_time
 
+        self.is_grasp = 0
         self.robot = PRS_IK()
         # robot ik algorithm
         self.env = Env()
@@ -696,10 +697,23 @@ class Agent(object):
         return robot_info1
 
     def grasp_object(self, obj_id):
-        grasp_execute = {"requestIndex": 1, "actionId": 4, "actionPara": json.dumps({'itemId': obj_id})}
-        r_id = self.server.send_data(5, grasp_execute, 1)
-        robot_info2 = self.wait_for_respond(r_id, 30)
-        return robot_info2
+        if not self.is_grasp:
+            grasp_execute = {"requestIndex": 1, "actionId": 4, "actionPara": json.dumps({'itemId': obj_id})}
+            r_id = self.server.send_data(5, grasp_execute, 1)
+            robot_info2 = self.wait_for_respond(r_id, 30)
+            if robot_info2:
+                self.is_grasp = 1
+            return robot_info2
+        return None
+
+    def release_object(self):
+        if self.is_grasp:
+            release_execute = {"requestIndex": 1, "actionId": 5}
+            r_id = self.server.send_data(5, release_execute, 1)
+            robot_info3 = self.wait_for_respond(r_id, 30)
+            print(robot_info3, '======---------release')
+            return robot_info3
+        return None
 
     def joint_control(self, joint_id, target):
         target = np.radians(target)
@@ -900,6 +914,37 @@ class Agent(object):
         # image.show()
         # image.save('img2.png')
         return image
+
+    def query_near_objects(self):
+        instruction = {"requestIndex": 0, "actionId": 12}
+        r_id = self.server.send_data(5, instruction, 1)
+        obj_info = self.wait_for_respond(r_id, 30)
+        object_info = eval(obj_info['information'])
+        return object_info["nearby"]
+
+    def go_to_target_object(self, name='Apple_what_your_nee', feature='Grabable_what_your_need', random_mode=1):
+        # pos, npc_info = self.query_information()
+        items = self.query_near_objects()
+        all_objs = []
+        if len(items) != 0:
+            for item_id in items:
+                item_info = self.object_data.objects[item_id]
+                if not item_info['isOccupied']:
+                    obj_f = [n.lower() for n in item_info['features']]
+                    if feature.lower() in obj_f or name.lower() in item_info['itemName'].lower():
+                        item_info = self.server.object_query(item_id)
+                        all_objs.append(item_info)
+        else:
+            return 0
+        if len(all_objs) == 0:
+            return 0
+        if random_mode == 1:
+            target_obj = np.random.choice(all_objs)
+        else:
+            target_obj = all_objs[0]
+        pos = target_obj['position']
+        res = self.goto_target_goal(pos, 1, 3, 10)
+        return res
 
     def navigate(self, map_floor, goal):
         #  map of scene, goal to navigation
