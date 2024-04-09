@@ -553,13 +553,10 @@ class Npc(object):
             time.sleep(0.3)
             try:
                 res = self.server.notes[action_id]
-                print('get-------------')
                 break
-            except Exception as e: print(e)
-        print(len(self.server.notes))
+            except Exception as e: pass
         img = json.loads(res["statusDetail"])
         im = img["multiVisionBytes"][0]['bytes']
-        print(len(im))
         byte_array = bytes(im)
         # Load and display PNG files
         image = Image.open(io.BytesIO(byte_array))
@@ -893,19 +890,16 @@ class Agent(object):
         # new instruction
         action_id = self.server.send_data(5, ins, 1)
         for ii in range(60):
-            time.sleep(0.3)
+            time.sleep(0.2)
             try:
                 res = self.server.notes[action_id]
-                print('get-------------')
                 break
             except: pass
-        print(len(self.server.notes))
-        print(type(res))
+        # print(len(self.server.notes), type(res))
         # with open('data.json', 'w') as file:
         #     json.dump(res, file)
         img = json.loads(res["information"])
         im = img["multiVisionBytes"][0]['bytes']
-        print(len(im))
         byte_array = bytes(im)
         # Display image loading and display PNG file
         image = Image.open(io.BytesIO(byte_array))

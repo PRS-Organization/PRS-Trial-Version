@@ -124,7 +124,6 @@ class Server(object):
                 now_client, addr = self.sock.accept()
                 print('Connected by', now_client)
                 self.state = 2
-                print(self.state, self.state, self.state)
                 now_client.settimeout(300)
                 self.clients.append([addr, now_client])
             except: pass
@@ -138,7 +137,7 @@ class Server(object):
                     print(e, n_client[0], 'Connected closed')
                     try:
                         self.clients.remove(n_client)
-                        if len(self.clients)==0 and self.state==2:
+                        if len(self.clients) == 0 and self.state == 2:
                             self.state = 0
                             self.stop_event.set()
                     except:
@@ -167,8 +166,7 @@ class Server(object):
             return 0
         else:
             self.messages.append(data)
-        print('---------------------------------')
-        # print(f'Received: msg')
+        # print('---------------------------------'， 'Received: msg')
         # ------------------parsing info from unity---------------------
         # self.messages.append(data.decode())
         try:
@@ -301,17 +299,17 @@ class Server(object):
             self.state = 0
             print('0、Env is over, exit!')
             return
-        elif cmd == "Result":
-            print('3、Execution results from Unity', dict_data)
-        elif cmd == "State":
+        elif cmd == "Result": pass
+            # print('3、Execution results from Unity', dict_data)
+        elif cmd == "State": pass
             # Storing parameter information
-            print('4、Detailed information obtained id: {}'.format(dict_data['requestIndex']))
+            # print('4、Detailed information obtained id: {}'.format(dict_data['requestIndex']))
             # # dict_map = ast.literal_eval(dict_ma["points"])
         elif cmd == "Control":
             pass
         # IK is here
-        elif cmd == "Information":
-            print("6、This is robot information", dict_data['requestIndex'], ', length- ', len(dict_data),)
+        elif cmd == "Information": pass
+            # print("6、This is robot information", dict_data['requestIndex'], ', length- ', len(dict_data),)
         else:
             print("\nUnknown cmd:{0}".format(cmd))
         # Continue receiving messages
