@@ -115,7 +115,8 @@ class Server(object):
         # robot ik algorithm
         self.maps = RoomMap()
         self.notes = {}
-
+        self.byte_stream = bytes()
+        self.header_length = 0
 
     def wait_for_connection(self):
         while True:
@@ -285,9 +286,7 @@ class Server(object):
         body = body.replace("true", "True")
         p = json.loads(body)  # Decode and deserialize strings into JSON objects
         dict_data = ast.literal_eval(p)
-        # print(dict_data)
-        self.information += str(cmd) + str(body)
-        # print(body)
+        # self.information += str(cmd) + str(body)
         # Check the message type
         # Instruction = 1
         # Request = 2
@@ -322,9 +321,20 @@ class Server(object):
     def unpack(self, data):
         headPack = struct.unpack('3I', bytearray(data[:self.headerSize]))
         bodySize = headPack[0]
-        # print(headPack)
         body = data[self.headerSize:self.headerSize + bodySize]
-        self.handle_msg(headPack, body.decode("utf8"))
+        try:
+            self.handle_msg(headPack, body.decode("utf8"))
+        except ValueError:
+            if not self.header_length or len(self.byte_stream) == 0:
+                self.header_length = headPack
+                self.byte_stream += body
+            else:
+                self.byte_stream += data
+                if len(self.byte_stream) >= self.header_length[0]:
+                    # data_byte = self.byte_stream.decode("utf8")
+                    self.handle_msg(self.header_length, self.byte_stream.decode())
+                    self.byte_stream = bytes()
+                    self.header_length = 0
         return 1
 
     def unpack_pro(self, data, msgHandler):
@@ -373,7 +383,6 @@ class Server(object):
         if object_info:
             object_info = eval(object_info['statusDetail'])
         return object_info
-
 
     def env_finish(self, process, npcs):
         if process:
