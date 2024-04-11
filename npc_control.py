@@ -59,6 +59,33 @@ class Env(object):
             'wc',
             'elevator'
         ]
+        self.location = {
+            "F1_EnergyRoom": [(21.65, -16.4, -24.8), (11.5, -16.4, -36.5)],
+            "F1_ConveyorRoom": [(-0.4, -16.4, -2.8), (9.1, -16.4, -2.9)],
+            "F1_StorageRoom01": [(10.4, -16.4, -54.1), (10.1, -16.4, -46.3)],
+            "F1_StorageRoom02": [(1.5, -16.4, -14.1), (9.5, -16.4, -26.5)],
+            "F2_LabRoom01": [(14.5, -5.1, 4.1), (14.4, -5.1, 7.3)],
+            "F2_LabRoom02": [(4.8, -5.1, 3.9), (5.1, -5.1, 7.1)],
+            "F2_LabRoom03": [(-4.9, -5.1, 3.5), (-3.4, -5.1, 6.2)],
+            "F2_Restroom": [(-15.2, -5.1, 2.2), (-15.9, -5.1, 3.5)],
+            "F2_WarmRoom": [(15.7, -5.1, -19.5), (15.4, -5.1, -17.1)],
+            "F2_StorageRoom": [(-11.9, -5.1, 1.7), (-13.4, -5.1, 1.9)],
+            "F2_ServerRoom": [(15.6, -5.1, -12.1), (14.5, -5.1, -13.1)],
+            "F2_MedicalRoom01": [(4.8, -5.1, -3.2), (3.6, -5.1, -5.9)],
+            "F2_MedicalRoom02": [(-4.9, -5.1, -3.6), (-8.5, -5.1, -6.8)],
+            "F2_MedicalRoom03": [(-12.4, -5.1, -3.7), (-11.5, -5.1, -6.7)],
+            # "F3_Bedroom": [(, 0.1,), (, 0.1,)],
+            "F3_GymRoom": [(14.7, 0.1, 3.3), (17.7, 0.1, 4.4)],
+            "F3_OfficeRoom01": [(-2.1, 0.1, -3.4), (-2.3, 0.1, -7.6)],
+            "F3_OfficeRoom02": [(-7.2, 0.1, -3.3), (-7.8, 0.1, -7.1)],
+            "F3_RestRoom": [(-15.5, 0.1, 2.8), (-15.9, 0.1, 3.8)],
+            "F3_OfficeSpaceRoom": [(4.9, 0.1, 3.2), (3.3, 0.1, 6.1)],
+            "F3_KitchenRoom": [(-14.7, 0.1, -3.2), (-15.9, 0.1, -6.9)],
+            "F3_StorageRoom": [(-11.8, 0.1, 2.7), (-13.4, 0.1, 2.1)],
+            "F3_LivingRoom": [(-4.9, 0.1, 3.3), (-3.1, 0.1, 8.1)],
+            "F3_ConferenceRoom": [(4.9, 0.1, -3.2), (1.5, 0.1, -4.6)]
+
+        }
 
     def calculate_distance(self, point1, point2):
         # NumPy array
@@ -244,7 +271,7 @@ class Npc(object):
                         if dis < 1:
                             result_go = 1
                             break
-                time.sleep(3)
+                time.sleep(1.5)
             if result_go == 0:
                 # Reverse loop deletion of points with a distance of 2 (not meter)
                 for i in range(len(point_list) - 1, -1, -1):
@@ -264,6 +291,24 @@ class Npc(object):
         result = 0
         result = self.goto_randomly(destination, rad, del_d, times)
         return result
+
+    def random_walk(self):
+        for i in range(1000):
+            if not self.server.state or self.server.stop_event.is_set() or not self.running:
+                break
+            random_key = np.random.choice(list(self.env.location.keys()))
+            location_now = self.env.location[random_key]
+            result = self.goto_randomly(location_now[1], 2, 2, 20)
+            if result:
+                res, obj = self.go_to_object('Seat')
+                if res:
+                    suc = self.npc_action('sit', obj)
+                    if suc:
+                        time.sleep(10)
+                        self.npc_action('stand')
+                        time.sleep(3)
+                    else:
+                        time.sleep(5)
 
     def walk_around(self):
         time.sleep(1)
@@ -293,7 +338,7 @@ class Npc(object):
             # print('$$$$$arrive: ', pos)
             time.sleep(0.5)
 
-    def go_to_object(self, target='Seat', random_mode=1):
+    def go_to_object(self, target='Seat', name='None_target', random_mode=1):
         pos, npc_info = self.query_information()
         items = npc_info['closeRangeItemIds']
         all_obj = []
@@ -305,16 +350,16 @@ class Npc(object):
                         item_info = self.server.object_query(item_id)
                         all_obj.append(item_info)
         else:
-            return 0
+            return 0, 0
         if len(all_obj) == 0:
-            return 0
+            return 0, 0
         if random_mode == 1:
             target_obj = np.random.choice(all_obj)
         else:
             target_obj = all_obj[0]
         pos = target_obj['position']
         res = self.goto_randomly(pos, 1, 2, 10)
-        return res
+        return res, target_obj['itemId']
 
     def get_now_time(self):
         week = self.times.weekday_now()
@@ -440,7 +485,7 @@ class Npc(object):
                         if pos:
                             tar = self.object_data.object_parsing(info)
                             if tar:
-                                print(self.chech_object_status(tar))
+                                print(self.check_object_status(tar))
                                 # tar = self.object_data.object_parsing(self.near_items, ['Stool'])
                                 ins_template['actionPara']["itemId"] = tar
                             else:
@@ -466,7 +511,7 @@ class Npc(object):
             time.sleep(0.5)
         return 1
 
-    def npc_action(self, tar_action):
+    def npc_action(self, tar_action, tar_object=0):
         action_para = self.actions[tar_action]
         instruct = self.mapping_action_type[action_para[0]]
         print(action_para, 'oooooooooo', instruct)
@@ -478,17 +523,20 @@ class Npc(object):
         if tar_action == 'stand':
             pass
         elif tar_action == 'sit':
-            pos, info = self.where_npc()
-            if pos:
-                tar = self.object_data.object_parsing(info)
-                if tar:
-                    # tar = self.object_data.object_parsing(self.near_items, ['Stool'])
-                    ins_template['actionPara']["itemId"] = tar
-                else:
-                    ins_template['actionPara']["itemId"] = 0
+            if tar_object:
+                ins_template['actionPara']["itemId"] = tar_object
+            # pos, info = self.where_npc()
+            # if pos:
+            #     tar = self.object_data.object_parsing(info)
+            #     if tar:
+            #         # tar = self.object_data.object_parsing(self.near_items, ['Stool'])
+            #         ins_template['actionPara']["itemId"] = tar
+            #     else:
+            #         ins_template['actionPara']["itemId"] = 0
 
         elif tar_action == 'pick':
-            ins_template['actionPara']["itemId"] = 1
+            if tar_object:
+                ins_template['actionPara']["itemId"] = tar_object
             ins_template['actionPara']["handType"] = -1
         elif tar_action == 'put':
             ins_template['actionPara']["position"] = {"x": 1, "y": 1, 'z': 1}
@@ -525,7 +573,7 @@ class Npc(object):
         # print('$$$$$arrive: ', pos)
         return res
 
-    def chech_object_status(self, target=1):
+    def check_object_status(self, target=1):
         for npc in range(3):
             request_id = self.server.send_data(2,  {"requestIndex": 0, "targetType": 1, "targetId": target}, 1)
             time.sleep(0.1)
