@@ -743,8 +743,9 @@ class PrsEnv(object):
                 if npc_i == number:
                     break
                 # running_thread = threading.Thread(target=npc.continuous_simulation, args=())
-                running_thread = threading.Thread(target=npc.walk_around, args=())
+                running_thread = threading.Thread(target=npc.random_walk, args=())
                 running_thread.start()
+                time.sleep(2)
             self.npc_running = 1
 
     def finish_env(self):
