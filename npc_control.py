@@ -346,7 +346,7 @@ class Npc(object):
             for item_id in items:
                 item_info = self.object_data.objects[item_id]
                 if not item_info['isOccupied']:
-                    if target.lower() in item_info['features'].lower():
+                    if target in item_info['features'] or name.lower() in item_info['itemName'].lower() :
                         item_info = self.server.object_query(item_id)
                         all_obj.append(item_info)
         else:
