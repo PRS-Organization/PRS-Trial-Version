@@ -1001,7 +1001,7 @@ class Agent(object):
         if location_now:
             outcome = self.goto_target_goal(location_now[0], 2, 2, 20)
         return outcome
-    
+
     def navigate(self, map_floor, goal):
         #  map of scene, goal to navigation
         path_map = copy.deepcopy(self.server.maps.maps_info[map_floor]['grid'])

@@ -58,7 +58,6 @@ class RoomMap(object):
         random_y_j = np.random.uniform(point_j, point_j + accuracy)
         return random_x_i, random_y_j
 
-
     def get_an_accessible_area(self, x, y, z, radius_meter=1.5, mode=0):
         # mode 0 represent the world position, 1 is the matrix map(x=floor_n, y=map_i, z=map_j)
         if not mode:
@@ -168,15 +167,13 @@ class RoomMap(object):
         plt.yticks([])
         plt.show()
 
-
-
 '''
 points:["{\"viability\":false,\"position\":{\"x\":-19.94000244140625,\"y\":-0.0499998964369297,\"z\":-59.400001525878909}}"]
 points:[[0/1,x,y,z],[0/1,-19.94000,-0.04999,-59.4000],[0/1,x,y,z]]
 '''
 
 if __name__ == '__main__':
-    # 读取 Map JSON
+    # read Map.JSON
     file_name = "map/map4.json"
     with open(file_name, 'r') as file:
         json_data = json.load(file)
