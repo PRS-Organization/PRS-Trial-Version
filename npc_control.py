@@ -357,6 +357,8 @@ class Npc(object):
             target_obj = np.random.choice(all_obj)
         else:
             target_obj = all_obj[0]
+        if target_obj == None:
+            return 0, 0
         pos = target_obj['position']
         res = self.goto_randomly(pos, 1, 2, 10)
         return res, target_obj['itemId']

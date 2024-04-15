@@ -536,8 +536,15 @@ class ObjectsData(object):
             json_data = json.load(file)
         with open('unity/PRS_Data/StreamingAssets/roomInfo.json', 'r') as file:
             room_data = json.load(file)
+        with open('unity/PRS_Data/StreamingAssets/segmentationTagColorInfo.json', 'r') as file:
+            seg_tag_data = json.load(file)
 
-        # 解析 JSON 数据
+        # decode JSON
+        seg_data = []
+        for item_tag in seg_tag_data['TagColors']:
+            # data_i = json.loads(item_tag)
+            seg_data.append(item_tag)
+
         env_objects = []
         for json_i in json_data['statusDetails']:
             data = json.loads(json_i)
@@ -563,6 +570,7 @@ class ObjectsData(object):
 
         self.objects = env_objects
         self.rooms = env_rooms
+        self.segment_tag = seg_data
         # print(env_rooms)
 
     def point_determine(self, pos):
@@ -578,7 +586,7 @@ class ObjectsData(object):
                 if abs(point_P['y']-room_i['y']) < 3:
                     res = room_i['name']
                     # print ("Point P is in room F3_Bedroom")
-        return  res
+        return res
 
     def object_parsing(self, ins, target=['Chair','Stool']):
         print('near items: ', ins)
@@ -663,8 +671,8 @@ def agent_plan(server, agent):
     agent.goto_target_goal((3.38, 0.1, 5.99))
     # Item location information
 #       {"requestIndex":10,"actionId":6,"result":1,"positionOffset":0.0,"directionOffset":0.0}
-
 # def server_initialization(output_queue):
+
 
 class DevNull:
     def write(self, msg):
@@ -706,7 +714,7 @@ class PrsEnv(object):
         while True:
             time.sleep(0.3)
             state = self.server.state
-            if state == 2: break
+            if state == 2 : break
         self.objs_data = ObjectsData()
         # --------------agent begin---------------
         self.agent = Agent(self.server, self.env_time, self.objs_data)
