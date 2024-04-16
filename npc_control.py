@@ -1008,8 +1008,9 @@ class Agent(object):
                     continue
                 for index, tag in enumerate(object_tag):
                     # "tag":"DrinkRaw","color":{"r":0.6800000071525574,"g":0.0,"b":0.2967270016670227,"a":1.0}
-                    r, g, b = tag['color']['r'], tag['color']['g'], tag['color']['b']
                     tag_name = tag['tag']
+                    if tag_name == 'Untagged': continue
+                    r, g, b = tag['color']['r'], tag['color']['g'], tag['color']['b']
                     # target_rgb = (0.68, 0.0, 0.296727)
                     target_rgb = (r, g, b)
                     # Check if the current pixel matches the target RGB value
