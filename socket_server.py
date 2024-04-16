@@ -128,12 +128,12 @@ class Server(object):
                 now_client.settimeout(300)
                 self.clients.append([addr, now_client])
             except: pass
-            for index_client,n_client in enumerate(self.clients):
+            for index_client, n_client in enumerate(self.clients):
                 # result = self.sock.connect_ex(n_client)
                 try:
                     result = n_client[1].getsockname()
                     r = n_client[1].getpeername()
-                    print('===========perfect connection============')
+                    # print('===========perfect connection============')
                 except Exception as e:
                     print(e, n_client[0], 'Connected closed now')
                     try:
