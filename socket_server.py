@@ -397,9 +397,9 @@ class Server(object):
         self.stop_event.set()
         self.sock.close()
         print(self.state, type(self.state))
-        print(threading.active_count(), ' ---11111111111111111111')
+        print(threading.active_count(), ' ------ env is ready to end')
         time.sleep(5)
-        print(threading.active_count(), ' ---11111111111111111111')
+        print(threading.active_count(), ' ------ thank you for using')
 
 
 class Command(object):
