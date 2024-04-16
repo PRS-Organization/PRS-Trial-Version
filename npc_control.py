@@ -1,6 +1,7 @@
 import os
 import json
 import csv
+import cv2
 import time
 import numpy as np
 from heapq import heappop, heappush
@@ -609,8 +610,11 @@ class Npc(object):
         im = img["multiVisionBytes"][0]['bytes']
         byte_array = bytes(im)
         # Load and display PNG files
-        image = Image.open(io.BytesIO(byte_array))
-        print(image.size)
+        nparr = np.frombuffer(byte_array, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # image = Image.open(io.BytesIO(byte_array))
+        # print(image.size)
         # Display Image
         # image.show()
         # image.save('img1.png')
@@ -952,11 +956,114 @@ class Agent(object):
         im = img["multiVisionBytes"][0]['bytes']
         byte_array = bytes(im)
         # Display image loading and display PNG file
-        image = Image.open(io.BytesIO(byte_array))
-        print(image.size)
+        np_arr = np.frombuffer(byte_array, np.uint8)
+        image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # image = Image.open(io.BytesIO(byte_array))
+        # print(image.size)
         # Display Image
         # image.show()
         # image.save('img2.png')
+        return image
+
+    def get_segmentation(self, camera_type=0):
+        #  0 head camera, 1 hand camera
+        c_type = 17
+        if camera_type == 0:
+            c_type = 17
+        elif camera_type == 1:
+            c_type = 18
+        ins = {"requestIndex": 1, "actionId": c_type, "actionPara": {'height': 300, 'width': 300}}
+        ins['actionPara'] = json.dumps(ins['actionPara'])
+        action_id = self.server.send_data(5, ins, 1)
+        res = self.wait_for_respond(action_id, 60)
+        if not res:
+            return res
+        img = json.loads(res["information"])
+        im = img["multiVisionBytes"][0]['bytes']
+        byte_array = bytes(im)
+        # Display image loading and display PNG file
+        # image = Image.open(io.BytesIO(byte_array))
+        nparr = np.frombuffer(byte_array, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # cv2.imshow('image', image)
+        # cv2.waitKey(0)
+        # Convert image byte stream to Image object
+        width, height = image.shape[1], image.shape[0]
+        seg_matrix = np.zeros((height, width))
+        object_tag = self.object_data.segment_tag
+        target = {}
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image)
+        # image.show()
+        # Traverse each pixel of the image
+        for x in range(height):
+            for y in range(width):
+                # Obtain the RGB value of pixels
+                r, g, b = image.getpixel((y, x))
+                # pixel_value = image[x, y]
+                # r, g, b =pixel_value[0], pixel_value[1], pixel_value[2]
+                rrr, ggg, bbb = r/255, g/255, b/255
+                if (rrr, ggg, bbb) == (1.0, 0.0, 0.0):
+                    continue
+                for index, tag in enumerate(object_tag):
+                    # "tag":"DrinkRaw","color":{"r":0.6800000071525574,"g":0.0,"b":0.2967270016670227,"a":1.0}
+                    r, g, b = tag['color']['r'], tag['color']['g'], tag['color']['b']
+                    tag_name = tag['tag']
+                    # target_rgb = (0.68, 0.0, 0.296727)
+                    target_rgb = (r, g, b)
+                    # Check if the current pixel matches the target RGB value
+                    if abs(rrr - target_rgb[0]) < 0.01 and abs(ggg - target_rgb[1]) < 0.01 and abs(bbb - target_rgb[2]) < 0.01:
+                        # Match pixel position and label index
+                        seg_matrix[x][y] = index
+                        target[index] = tag_name
+        # Display Image
+        # pil_image = Image.fromarray(((255/np.max(seg_matrix))*seg_matrix).astype('uint8'), mode='L')
+        # pil_image.show()
+        # plt.imshow(seg_matrix)
+        # plt.show()
+        return seg_matrix, target
+
+    def get_depth(self, camera_type=0):
+        #  0 head camera, 1 hand camera
+        c_type = 17
+        if camera_type == 0:
+            c_type = 15
+        elif camera_type == 1:
+            c_type = 16
+        ins = {"requestIndex": 1, "actionId": c_type, "actionPara": {'height': 300, 'width': 300}}
+        ins['actionPara'] = json.dumps(ins['actionPara'])
+        action_id = self.server.send_data(5, ins, 1)
+        res = self.wait_for_respond(action_id, 60)
+        if not res:
+            return res
+        img = json.loads(res["information"])
+        im = img["multiVisionBytes"][0]['bytes']
+        byte_array = bytes(im)
+        nparr = np.frombuffer(byte_array, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # cv2.imshow('image', image)
+        # cv2.waitKey(0)
+        # Display image loading and display PNG file
+        # image = Image.open(io.BytesIO(byte_array))
+        # image = image.convert('I;16')
+        # pil_image = Image.fromarray(image.astype('uint8'), mode='L')
+        # pil_image.show()
+        depth_matrix = image/255*10
+        return depth_matrix
+
+        # 获取图像的像素数据
+        # pixels = im.getdata()
+        # target = []
+        width, height = image.size
+        # 遍历每个像素点
+        for y in range(height):
+            for x in range(width):
+                # 获取当前像素点的像素值
+                pixel_value = image.getpixel((x, y))
+                # 处理当前像素值，这里可以根据需要进行自定义操作
+                # print(f"Pixel at ({x}, {y}): {pixel_value}")
         return image
 
     def query_near_objects(self):
