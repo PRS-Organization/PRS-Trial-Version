@@ -3,7 +3,7 @@ from socket_server import *
 
 if __name__ == '__main__':
     # Environment initialization
-    prs = PrsEnv(is_print=0)
+    prs = PrsEnv(is_print=0, not_test_mode=1)
     prs.npc_start(5)
     # How many NPCs are there
     ma = np.array(prs.server.maps.floor3)

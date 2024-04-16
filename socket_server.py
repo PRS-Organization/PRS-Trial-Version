@@ -704,7 +704,7 @@ class PrsEnv(object):
         try:
             if not_test_mode:
                 # Start the Shell script using subprocess.Popen and capture stdout and stderr
-                process = subprocess.Popen([executable_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                self.process = subprocess.Popen([executable_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 print("Starting Unity process...")
                 # If needed, you can add more processing logic here, such as waiting for the process to finish, etc.
         except Exception as e:

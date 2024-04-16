@@ -32,7 +32,7 @@ Note: This should create a `unity` folder. Give it necessary permissions:
 ```     
 or start with only unity application: 
 ``` 
-bash start.sh 
+    bash start.sh 
 ```
 7. If you encounter a port occupation error, run:  
 ```
