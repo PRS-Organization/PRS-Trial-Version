@@ -1,6 +1,12 @@
 # PRS API
-[Robot API](#robot-api)
-## Environment Operations: Accelerate, Terminate, Initiate
+We provide **API** that includes various functions:
+- [Environment API](#environment-api)
+- [Robot API](#robot-api)
+- [Map API](#map-and-position-api)
+- [NPC API](#npc-api)
+
+## Environment API
+Operations: Accelerate, Terminate, Initiate
 
 Instantiate environment class
 ```
@@ -98,7 +104,7 @@ Retrieve camera semantic segmentation, specifying mode (0 for head camera, 1 for
 seg, tags = prs.agent.get_segmentation(0)
 ```
 
-## Map/Position Operations
+## Map and Position API
 
 Determine the area based on world coordinates, returning the room or None
 ```
@@ -133,7 +139,7 @@ Query object information based on ID
 prs.object_query(obj_id=100)
 ```
 
-## NPC Operations
+## NPC API
 
 Execute actions for NPCs based on action IDs, including looping actions, interactive actions, and performance actions
 ```
