@@ -50,4 +50,6 @@ Note: In this version, there's no function to end the environment due to its lon
 
 Stay tuned for the upcoming complete API documentation and task benchmarks!
 
+## More API Guidance
+[NPC API](document/api.md)
 
