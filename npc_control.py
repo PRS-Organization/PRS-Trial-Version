@@ -625,6 +625,7 @@ class Agent(object):
     def __init__(self, sock, env_time, objects):
         self.object_data = objects
         self.times = env_time
+        self.running = 1
 
         self.is_grasp = 0
         self.robot = PRS_IK()
@@ -888,6 +889,8 @@ class Agent(object):
         floor, point_list = self.server.maps.get_an_accessible_area(xx, yy, zz, radius, position_mode)
         result_go = 0
         for i_try in range(times):
+            if not self.running or self.server.stop_event.is_set() or not self.server.state:
+                break
             length = len(point_list)
             if length < 1:
                 break
@@ -900,9 +903,13 @@ class Agent(object):
             position_go = (pos_i, self.server.maps.floors[floor], pos_j)
             print(' now plan to {}'.format(position_go))
             for i in range(2):
+                if not self.running or self.server.stop_event.is_set() or not self.server.state:
+                    break
                 action_id = self.go_to_there(position_go)
                 result = 0
                 while True:
+                    if not self.running or self.server.stop_event.is_set() or not self.server.state:
+                        break
                     time.sleep(0.5)
                     try:
                         if self.server.notes[action_id]['result'] == 1:

@@ -117,6 +117,7 @@ class Server(object):
         self.notes = {}
         self.byte_stream = bytes()
         self.header_length = 0
+        self.sock.settimeout(10)
 
     def wait_for_connection(self):
         while True:
@@ -134,7 +135,7 @@ class Server(object):
                     r = n_client[1].getpeername()
                     print('===========perfect connection============')
                 except Exception as e:
-                    print(e, n_client[0], 'Connected closed')
+                    print(e, n_client[0], 'Connected closed now')
                     try:
                         self.clients.remove(n_client)
                         if len(self.clients) == 0 and self.state == 2:
@@ -700,7 +701,8 @@ class PrsEnv(object):
         self.env_time = EnvTime()
         # ---------------time system ready-------------------
         self.process = 0
-        executable_path = 'start.sh'
+        # executable_path = 'start.sh'
+        executable_path = './unity/PRS.x86_64'
         try:
             if not_test_mode:
                 # Start the Shell script using subprocess.Popen and capture stdout and stderr
@@ -759,6 +761,7 @@ class PrsEnv(object):
     def finish_env(self):
         print('========== Env end ==========')
         self.stop_event.set()
+        self.agent.running = 0
         self.server.env_finish(self.process, self.npcs)
         exit(0)
 
