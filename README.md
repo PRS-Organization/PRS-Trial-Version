@@ -30,6 +30,10 @@ Note: This should create a `unity` folder. Give it necessary permissions:
 ```
 	python prs_demo.py
 ```     
+or start with only unity application: 
+``` 
+bash start.sh 
+```
 7. If you encounter a port occupation error, run:  
 ```
 	bash clean_port.sh
