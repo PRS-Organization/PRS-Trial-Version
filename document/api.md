@@ -1,6 +1,7 @@
 # PRS API
 We provide **API** that includes various functions:
 - [Environment API](#environment-api)
+- [Task API](#task-api)
 - [Robot API](#robot-api)
 - [Map API](#map-and-position-api)
 - [NPC API](#npc-api)
@@ -25,6 +26,16 @@ Terminate the environment and end the process
 prs.finish_env()
 ```
 
+## Task API
+
+Initialize the task program, 0 stands for searching and delivery tasks
+```
+prs.task_choice(0)
+```
+Evaluate the task result
+```
+prs.task_evaluate()
+```
 ## Robot API
 
 Retrieve vision data, specifying the camera type (0 for head, 1 for hand)
