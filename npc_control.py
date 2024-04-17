@@ -17,6 +17,7 @@ import roboticstoolbox as rtb
 from math import pi
 from spatialmath import SE3
 from spatialmath.base import *
+from collections import Counter
 
 def random_number(n):
     selected_number = np.random.randint(0, n)  # Generate a random number within the interval [0, n-1]
@@ -633,6 +634,9 @@ class Agent(object):
         self.env = Env()
         self.server = sock
         self.agent_state = 1
+        self.current_info = None
+        self.check_for_MLLM = None
+        self.temporary_data = None
         self.height_f1 = -16.693447
         self.height_f2 = -5.2174
         self.height_f3 = -0.0499999
