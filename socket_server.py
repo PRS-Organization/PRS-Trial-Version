@@ -737,7 +737,7 @@ class PrsEnv(object):
         npc_9 = Npc(9, self.server, self.env_time, self.objs_data)
 
         print('start')
-
+        self.task = None
         self.npcs = [npc_0, npc_1, npc_2, npc_3, npc_4, npc_5, npc_6, npc_7, npc_8, npc_9]
         time.sleep(1)
 

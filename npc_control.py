@@ -117,6 +117,7 @@ class Npc(object):
         self.running = 1
         self.action_state = 'stand'
         self.place_state = 'warehouse'
+        self.information = None
         # self.
         # -----initialization------
         self.height_f1 = -16.693447
@@ -124,12 +125,6 @@ class Npc(object):
         self.height_f3 = -0.0499999
         self.position = [0, 0, 0]
         # tar_action, number = 'sit', 0
-        # action_para, instruct = [], 1
-        # ins_template={}
-        # # action_para = self.actions[tar_action]
-        # # instruct = self.mapping_action_type[action_para[0]]
-        # # ins_template = self.instruction_type[instruct]
-
         # 0 universal (parameters for turning, sitting, eating, and missing) 1performance 2expressions
         # 3go 4pick 5put  6turn 7manipulation component  8
         self.instruction_type = [{"requestIndex": 10, "npcId": 0, "actionId": 0, "actionPara": {}},
@@ -172,7 +167,6 @@ class Npc(object):
         #      Dance = 100, Exercise = 101, PlayComputer = 102, PlayGame = 103, LayingDownOnDoor = 104, StandLookHandObject = 105, SitLookHandObject = 106,
             #     //Single animation
             #     WaveHandOverHead = 200, WaveHandAtWaist = 201, StreachHead = 202
-        #     {"actionId":400,"actionPara":"{\"showType\":100}"}
         }
         self.obj_interaction_action = ['pick', 'put', 'eat', 'operateButton', 'operateKnob', 'operateSlider',
             'operateLever', 'triggerButton']
