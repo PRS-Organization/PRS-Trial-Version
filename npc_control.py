@@ -622,7 +622,7 @@ class Agent(object):
         self.times = env_time
         self.running = 1
 
-        self.is_grasp = 0
+        self.is_grasp = None
         self.robot = PRS_IK()
         # robot ik algorithm
         self.env = Env()
@@ -752,7 +752,7 @@ class Agent(object):
             r_id = self.server.send_data(5, grasp_execute, 1)
             robot_info2 = self.wait_for_respond(r_id, 30)
             if robot_info2:
-                self.is_grasp = 1
+                self.is_grasp = obj_id
             return robot_info2
         return None
 
@@ -761,7 +761,9 @@ class Agent(object):
             release_execute = {"requestIndex": 1, "actionId": 5}
             r_id = self.server.send_data(5, release_execute, 1)
             robot_info3 = self.wait_for_respond(r_id, 30)
-            print(robot_info3, '======---------release')
+            if robot_info3:
+                print(robot_info3, '======---------release')
+                self.is_grasp = None
             return robot_info3
         return None
 
