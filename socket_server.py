@@ -543,9 +543,14 @@ class ObjectsData(object):
             json_npc = json.load(file)
         # decode JSON
         seg_data = []
-        for item_tag in seg_tag_data['TagColors']:
+        rgb_id = dict()
+        for index_tag, item_tag in enumerate(seg_tag_data['TagColors']):
             # data_i = json.loads(item_tag)
             seg_data.append(item_tag)
+            r_n, g_n, b_n = float(item_tag['color']['r']), float(item_tag['color']['g']), float(item_tag['color']['b'])
+            r_n, g_n, b_n = '{:.2f}'.format(r_n), '{:.2f}'.format(g_n), '{:.2f}'.format(b_n)
+            rgb = (r_n, g_n, b_n)
+            rgb_id[rgb] = index_tag
 
         env_objects = []
         for json_i in json_data['statusDetails']:
@@ -573,6 +578,7 @@ class ObjectsData(object):
         self.objects = env_objects
         self.rooms = env_rooms
         self.segment_tag = seg_data
+        self.rgb_to_id = rgb_id
         self.characters = json_npc['npc']
         # print(env_rooms)
 
