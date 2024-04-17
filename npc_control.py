@@ -1155,7 +1155,7 @@ class Agent(object):
         res = self.goto_target_goal(pos, distance, 3, 10)
         return res
 
-    def go_to_destination(self, tar_location):
+    def go_to_destination(self, tar_location, ids=0):
         location_now, outcome = None, 0
         try:
             location_now = self.env.location[tar_location]
@@ -1166,7 +1166,7 @@ class Agent(object):
                     location_now = self.env.location[loc]
                     break
         if location_now:
-            outcome = self.goto_target_goal(location_now[0], 2, 2, 20)
+            outcome = self.goto_target_goal(location_now[ids], 2, 2, 20)
         return outcome
 
     def navigate(self, map_floor, goal):
