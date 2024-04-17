@@ -117,7 +117,7 @@ class Npc(object):
         self.running = 1
         self.action_state = 'stand'
         self.place_state = 'warehouse'
-        self.information = None
+        self.information = self.object_data.characters[self.person_id]
         # self.
         # -----initialization------
         self.height_f1 = -16.693447
