@@ -230,7 +230,7 @@ class Npc(object):
         result_go = 0
         for i_try in range(times):
             if not self.running or self.server.stop_event.is_set() or not self.server.state:
-                break
+                return 0
             length = len(point_list)
             if length < 1:
                 break
@@ -245,13 +245,13 @@ class Npc(object):
             print(' now plan to {}'.format(position_go))
             for i in range(2):
                 if not self.running or self.server.stop_event.is_set() or not self.server.state:
-                    break
+                    return 0
                 action_id = self.go_to_here(position_go)
                 result = 0
                 while True:
                     time.sleep(0.5)
                     if not self.running or self.server.stop_event.is_set() or not self.server.state:
-                        break
+                        return 0
                     try:
                         if self.server.notes[action_id]['informResult'] == 2:
                             result = self.server.notes[action_id]['informResult']
@@ -291,7 +291,7 @@ class Npc(object):
     def random_walk(self):
         for i in range(1000):
             if not self.server.state or self.server.stop_event.is_set() or not self.running:
-                break
+                return 0
             random_key = np.random.choice(list(self.env.location.keys()))
             location_now = self.env.location[random_key]
             result = self.goto_randomly(location_now[1], 2, 2, 20)
@@ -310,7 +310,7 @@ class Npc(object):
         time.sleep(1)
         for i in range(1000):
             if not self.server.state or self.server.stop_event.is_set() or not self.running:
-                break
+                return 0
             if i < 3 and False:
                 continue
             n = random_number(13)
@@ -336,6 +336,8 @@ class Npc(object):
 
     def go_to_object(self, target='Seat', name='None_target', random_mode=1):
         pos, npc_info = self.query_information()
+        if not pos:
+            return 0, 0
         items = npc_info['closeRangeItemIds']
         all_obj = []
         if len(items) != 0:
@@ -425,7 +427,7 @@ class Npc(object):
             print('############ now is {} '.format(week), hour, min)
             self.one_day(npc_day[self.person_id])
             if not self.server.state or self.server.stop_event.is_set() or not self.running:
-                break
+                return 0
             while True:
                 week_n, hour_n, min_n = self.get_now_time()
                 if week != week_n:
@@ -439,7 +441,7 @@ class Npc(object):
         while hour < 23:
             week, hour_now, min = self.get_now_time()
             if not self.server.state or self.server.stop_event.is_set() or not self.running:
-                break
+                return 0
             if hour_now != hour or min > 55:
                 hour = hour_now
                 tar_action, tar_place = a_day[hour][0], a_day[hour][1]
@@ -890,7 +892,7 @@ class Agent(object):
         result_go = 0
         for i_try in range(times):
             if not self.running or self.server.stop_event.is_set() or not self.server.state:
-                break
+                return 0
             length = len(point_list)
             if length < 1:
                 break
@@ -904,12 +906,12 @@ class Agent(object):
             print(' now plan to {}'.format(position_go))
             for i in range(2):
                 if not self.running or self.server.stop_event.is_set() or not self.server.state:
-                    break
+                    return 0
                 action_id = self.go_to_there(position_go)
                 result = 0
                 while True:
                     if not self.running or self.server.stop_event.is_set() or not self.server.state:
-                        break
+                        return 0
                     time.sleep(0.5)
                     try:
                         if self.server.notes[action_id]['result'] == 1:
@@ -1081,16 +1083,21 @@ class Agent(object):
         object_info = eval(obj_info['information'])
         return object_info["nearby"]
 
-    def go_to_target_object(self, name='Apple_what_your_nee', feature='Grabable_what_your_need', distance=1,
-                            random_mode=1):
+    def go_to_target_object(self, object_id=None, name='Apple_what_your_nee', feature='Grabable_what_your_need',
+                            distance=1, random_mode=1):
         items = self.query_near_objects()
+        if not items: return 0
         all_objs = []
         if len(items) != 0:
             for item_id in items:
                 item_info = self.object_data.objects[item_id]
                 if not item_info['isOccupied']:
                     obj_f = [n.lower() for n in item_info['features']]
-                    if feature.lower() in obj_f or name.lower() in item_info['itemName'].lower():
+                    check_id = 0
+                    if object_id is not None:
+                        if item_id['itemId'] == object_id:
+                            check_id = 1
+                    if feature.lower() in obj_f or name.lower() in item_info['itemName'].lower() or check_id:
                         item_info = self.server.object_query(item_id)
                         all_objs.append(item_info)
         else:
@@ -1101,6 +1108,7 @@ class Agent(object):
             target_obj = np.random.choice(all_objs)
         else:
             target_obj = all_objs[0]
+        if not target_obj: return 0
         pos = target_obj['position']
         res = self.goto_target_goal(pos, distance, 3, 10)
         return res
