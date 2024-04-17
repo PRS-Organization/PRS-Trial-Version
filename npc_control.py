@@ -603,6 +603,8 @@ class Npc(object):
                 res = self.server.notes[action_id]
                 break
             except Exception as e: pass
+        if not res:
+            return res
         img = json.loads(res["statusDetail"])
         im = img["multiVisionBytes"][0]['bytes']
         byte_array = bytes(im)
@@ -642,6 +644,59 @@ class Agent(object):
         self.direction_vector = {'x': None,'y': None}
         self.map_position_agent = {'x': None, 'y': None, 'floor': None}
 
+    def request_interaction(self, type=0):
+        # type=0 head camera, 1 shows hand camera, suggest not to use this function while moving
+        ob_rgb = self.observation_camera(type)
+        seg, tags = self.get_segmentation(type, 1)
+        if isinstance(ob_rgb, np.ndarray) and isinstance(seg, np.ndarray) and tags:
+            self.check_for_MLLM = {'seg_matrix': seg, 'tags': tags}
+            return ob_rgb
+        return 0
+
+    def interaction(self, input_matrix, manipulaton=1):
+        #  input_matrix, 0: None, 1: target
+        #  manipulation=0 view for recognize, manipulation=1 grasp
+        target_list = []
+        if self.check_for_MLLM:
+            for i in range(input_matrix.shape[0]):
+                for j in range(input_matrix.shape[1]):
+                    if input_matrix[i][j]:
+                      target_list.append(self.check_for_MLLM['seg_matrix'][i][j])
+            counter = Counter(target_list)
+            try:
+                most_common_element, occurrences = counter.most_common(1)[0]
+            except:
+                print('no object or target in the input matrix')
+                return 0
+            target_id = None
+            if most_common_element and occurrences/len(target_list) > 0.5:
+                target_obj = self.check_for_MLLM['tags'][int(most_common_element)]
+                try:
+                    split_list = target_obj.split('_')
+                    target_id = int(split_list[1])
+                    obj_n = split_list[0]
+                except: pass
+                if target_id is None: return 0
+            print(target_id, most_common_element, occurrences)
+            if manipulaton == 1:
+                tar_obj_info = self.object_information_query(obj_id=target_id)
+                if not tar_obj_info: return 0
+                self.goto_target_goal(tar_obj_info['position'], 1, 1, position_mode=0)
+                re = self.direction_adjust(position=tar_obj_info['position'])
+                a = self.ik_calculation(tar_obj_info['position'])
+                if a:
+                    self.arm_control(a)
+                self.grasp_object(target_id)
+        return 0
+
+    def object_information_query(self, obj_id=0):
+        instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
+        r_id = self.server.send_data(2, instruction, 1)
+        object_info = self.wait_for_respond(r_id, 30)
+        if object_info:
+            object_info = eval(object_info['statusDetail'])
+        return object_info
+
     def ik_control(self, tar=['apple']):
         obj_n = self.object_data.object_query(tar)
         if len(obj_n) == 0:
@@ -671,7 +726,7 @@ class Agent(object):
         print(obj_info1, '---------------------------IK relative position----------------------')
         joint_targets = self.ik_process(pos_relative['x'], 0, pos_relative['z'])
         #
-        # --------------- caculate the relative position for IK estimate-----------------
+        # --------------- calculate the relative position for IK estimate-----------------
         target_execute = {"requestIndex": 1, "actionId": 3, "actionPara": json.dumps({'result': 1, 'data': joint_targets})}
         r_id = self.server.send_data(5, target_execute, 1)
         robot_info1 = self.wait_for_respond(r_id, 30)
@@ -958,7 +1013,8 @@ class Agent(object):
                 res = self.server.notes[action_id]
                 break
             except: pass
-        # print(len(self.server.notes), type(res))
+        if not res:
+            return res
         # with open('data.json', 'w') as file:
         #     json.dump(res, file)
         img = json.loads(res["information"])
@@ -969,70 +1025,10 @@ class Agent(object):
         image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         # image = Image.open(io.BytesIO(byte_array))
-        # print(image.size)
         # Display Image
         # image.show()
         # image.save('img2.png')
         return image
-
-    def get_segmentation(self, camera_type=0):
-        #  0 head camera, 1 hand camera
-        c_type = 17
-        if camera_type == 0:
-            c_type = 17
-        elif camera_type == 1:
-            c_type = 18
-        ins = {"requestIndex": 1, "actionId": c_type, "actionPara": {'height': 300, 'width': 300}}
-        ins['actionPara'] = json.dumps(ins['actionPara'])
-        action_id = self.server.send_data(5, ins, 1)
-        res = self.wait_for_respond(action_id, 60)
-        if not res:
-            return res
-        img = json.loads(res["information"])
-        im = img["multiVisionBytes"][0]['bytes']
-        byte_array = bytes(im)
-        # Display image loading and display PNG file
-        # image = Image.open(io.BytesIO(byte_array))
-        nparr = np.frombuffer(byte_array, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        # cv2.imshow('image', image)
-        # cv2.waitKey(0)
-        # Convert image byte stream to Image object
-        width, height = image.shape[1], image.shape[0]
-        seg_matrix = np.zeros((height, width))
-        object_tag = self.object_data.segment_tag
-        target = {}
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(image)
-        # image.show()
-        # Traverse each pixel of the image
-        for x in range(height):
-            for y in range(width):
-                # Obtain the RGB value of pixels
-                r, g, b = image.getpixel((y, x))
-                # pixel_value = image[x, y]
-                # r, g, b =pixel_value[0], pixel_value[1], pixel_value[2]
-                rrr, ggg, bbb = r/255, g/255, b/255
-                if (rrr, ggg, bbb) == (1.0, 0.0, 0.0):
-                    continue
-                for index, tag in enumerate(object_tag):
-                    # "tag":"DrinkRaw","color":{"r":0.6800000071525574,"g":0.0,"b":0.2967270016670227,"a":1.0}
-                    tag_name = tag['tag']
-                    if tag_name == 'Untagged': continue
-                    r, g, b = tag['color']['r'], tag['color']['g'], tag['color']['b']
-                    # target_rgb = (0.68, 0.0, 0.296727)
-                    target_rgb = (r, g, b)
-                    # Check if the current pixel matches the target RGB value
-                    if abs(rrr - target_rgb[0]) < 0.01 and abs(ggg - target_rgb[1]) < 0.01 and abs(bbb - target_rgb[2]) < 0.01:
-                        # Match pixel position and label index
-                        seg_matrix[x][y] = index
-                        target[index] = tag_name
-        # Display Image
-        # pil_image = Image.fromarray(((255/np.max(seg_matrix))*seg_matrix).astype('uint8'), mode='L')
-        # pil_image.show()
-        # plt.imshow(seg_matrix)
-        # plt.show()
-        return seg_matrix, target
 
     def get_depth(self, camera_type=0):
         #  0 head camera, 1 hand camera
@@ -1063,18 +1059,64 @@ class Agent(object):
         depth_matrix = image/255*10
         return depth_matrix
 
-        # 获取图像的像素数据
-        # pixels = im.getdata()
-        # target = []
-        width, height = image.size
-        # 遍历每个像素点
-        for y in range(height):
-            for x in range(width):
-                # 获取当前像素点的像素值
-                pixel_value = image.getpixel((x, y))
-                # 处理当前像素值，这里可以根据需要进行自定义操作
-                # print(f"Pixel at ({x}, {y}): {pixel_value}")
+    def get_segmentation(self, camera_type=0, decode=0, show=False):
+        #  0 head camera, 1 hand camera
+        c_type = 17
+        if camera_type == 0:
+            c_type = 17
+        elif camera_type == 1:
+            c_type = 18
+        ins = {"requestIndex": 1, "actionId": c_type, "actionPara": {'height': 300, 'width': 300}}
+        ins['actionPara'] = json.dumps(ins['actionPara'])
+        action_id = self.server.send_data(5, ins, 1)
+        res = self.wait_for_respond(action_id, 60)
+        if not res:
+            return res
+        img = json.loads(res["information"])
+        im = img["multiVisionBytes"][0]['bytes']
+        byte_array = bytes(im)
+        # Display image loading and display PNG file
+        # image = Image.open(io.BytesIO(byte_array))
+        nparr = np.frombuffer(byte_array, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # Convert image byte stream to Image object
+        if show:
+            cv2.imshow('image', image)
+            cv2.waitKey(10)
+            cv2.destroyAllWindows()
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        if decode:
+            im, tags = self.decode_segment(image)
+            return im, tags
         return image
+
+    def decode_segment(self, image):
+        width, height = image.shape[1], image.shape[0]
+        object_tag = self.object_data.segment_tag
+        rgb_id = self.object_data.rgb_to_id
+        target = {}
+        seg_matrix = np.zeros((height, width))
+        image = image / 255
+        formatted_arr = np.array([f'{x:.2f}' for x in np.nditer(image)])
+        image = formatted_arr.reshape(image.shape)
+        # Traverse each pixel of the image
+        for x in range(height):
+            for y in range(width):
+                # Obtain the RGB value of pixels
+                pixel_value = image[x, y]
+                r, g, b = pixel_value[0], pixel_value[1], pixel_value[2]
+                rrggbb = (r, g, b)
+                if rrggbb == self.object_data.background:
+                    continue
+                pixel_id = rgb_id.get(rrggbb, 0)
+                if pixel_id:
+                    seg_matrix[x][y] = pixel_id
+        values_set = set(np.unique(seg_matrix))
+        for value in values_set:
+            value = int(value)
+            if value:
+                target[value] = object_tag[value]['tag']
+        return seg_matrix, target
 
     def query_near_objects(self):
         instruction = {"requestIndex": 0, "actionId": 12}
@@ -1220,6 +1262,7 @@ class Agent(object):
     def direction_adjust(self, position):
         # world_position = (22.38, 0.1, -0.17) or {'x': , 'y': , 'z': }
         flo, xx, yy, is_o = self.server.maps.get_point_info(position)
+        self.pos_query()
         rotation_angle = self.calculate_rotation_angle(xx, yy)
         result = self.rotate_right(rotation_angle)
         self.pos_query()
