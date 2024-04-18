@@ -84,11 +84,11 @@ prs.agent.get_all_map()
 ```
 Calculate IK for relative coordinates and target values, specifying world coordinates
 ```
-prs.agent.ik_calculation((-10, 1, 1))
+prs.agent.ik_calculation((-10.1, 0.1, 1.6))
 ```
 Calculate IK target, specifying relative coordinates
 ```
-prs.agent.ik_process(1, 1, 1)
+prs.agent.ik_process(0.25, 0.1, 0.79)
 ```
 Control robot arms, specifying joint target values
 ```
