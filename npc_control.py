@@ -1235,8 +1235,10 @@ class Agent(object):
         print(f"started 5 at {time.strftime('%X')}")
         # print(mp.cpu_count()) 16
 
-    def calculate_rotation_angle(self, xx, yy):
+    def calculate_rotation_angle(self, xx, yy, accuracy=1):
         start = (self.map_position_agent['x'], self.map_position_agent['y'])
+        if accuracy:
+            start = (self.position_agent['x'], self.position_agent['z'])
         start_vector = (self.direction_vector['x'], self.direction_vector['y'])
         # print(xx,yy,'=====', start, '=====', start_vector)
         x0, y0, x, y = start_vector[0], start_vector[1], start[0], start[1]
@@ -1259,9 +1261,14 @@ class Agent(object):
         print(angle_degrees)
         return angle_degrees
 
-    def direction_adjust(self, position):
+    def direction_adjust(self, position, accuracy=1):
         # world_position = (22.38, 0.1, -0.17) or {'x': , 'y': , 'z': }
         flo, xx, yy, is_o = self.server.maps.get_point_info(position)
+        if accuracy:
+            try:
+                xx, yy = position['x'], position['z']
+            except:
+                xx, yy = position[0], position[2]
         self.pos_query()
         rotation_angle = self.calculate_rotation_angle(xx, yy)
         result = self.rotate_right(rotation_angle)
