@@ -114,6 +114,19 @@ Retrieve camera semantic segmentation, specifying mode (0 for head camera, 1 for
 ```
 seg, tags = prs.agent.get_segmentation(0)
 ```
+Request Visual Interaction
+
+```
+prs.agent.request_interaction()
+```
+This function requests an interaction with the visual system.
+Input: A two-dimensional matrix marking the target and the operation type:
+0: recognize
+1: grasp
+2, etc.
+```
+prs.agent.interaction()
+```
 
 ## Map and Position API
 
