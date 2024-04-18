@@ -35,6 +35,10 @@ class EnvTime(object):
         # self.current_date.isoweekday()
         self.week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
+    def set_time(self, year=2025, month=3, day=12, hour=6, minute=50, second=0, end=2050):
+        self.current_date = datetime.datetime(year, month, day, hour, minute, second)
+        print(self.current_date)
+
     def time_simulation(self, stop_event):
         while True:
             # print(stop_event.is_set())
@@ -693,6 +697,7 @@ class PrsEnv(object):
         print("PRS environment beta is starting without interaction")
         print('Please open the Unity program (start.sh)')
         print('PRS challenge task and benchmark come soon!')
+        self.original_stdout = sys.stdout
         if not is_print:
             dev_null = DevNull()
             sys.stdout = dev_null
@@ -771,6 +776,7 @@ class PrsEnv(object):
         self.stop_event.set()
         self.agent.running = 0
         self.server.env_finish(self.process, self.npcs)
+        sys.stdout = self.original_stdout
         exit(0)
 
     def sim_speed(self, speed):
