@@ -21,6 +21,10 @@ Accelerate the scene simulation by specifying the speed multiplier
 ```
 prs.sim_speed(2)
 ```
+set environment time
+```
+prs.env_time.set_time(2024, 6, 1, 9, 0)
+```
 Terminate the environment and end the process
 ```
 prs.finish_env()
