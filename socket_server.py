@@ -78,6 +78,11 @@ class MsgCmd(Enum):
     State = 4
     Control = 5
     Information = 6
+    Server_Update_Config = 7
+    Server_Device_Create_Request = 8
+    Server_Device_Inform_Request = 9
+    Server_Device_Status_Request = 10
+    Client_Device_Status_Response = 11
 
 
 class Server(object):
