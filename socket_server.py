@@ -757,6 +757,7 @@ class PrsEnv(object):
         print('start')
         self.task = {'type': None, 'npc': None, 'object': None, 'target': None, 'state': 0, 'result': None}
         self.npcs = [npc_0, npc_1, npc_2, npc_3, npc_4, npc_5, npc_6, npc_7, npc_8, npc_9]
+        self.agent.npcs = self.npcs
         time.sleep(1)
 
         # # --------------------------robot ----------------------

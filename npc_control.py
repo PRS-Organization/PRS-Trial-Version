@@ -625,6 +625,7 @@ class Agent(object):
         self.object_data = objects
         self.times = env_time
         self.running = 1
+        self.npcs = []
 
         self.is_grasp = None
         self.robot = PRS_IK()

@@ -60,7 +60,7 @@ prs.agent.rotate_right(degree=30)
 ```
 Control robot joints, specifying the joint ID and target
 ```
-prs.agent.joint_control(id=1, target=20)
+prs.agent.joint_control(joint_id=1, target=20)
 ```
 Adjust robot direction alignment based on input coordinates
 ```
@@ -106,6 +106,10 @@ Move towards the vicinity of an object, specifying the object ID or functional f
 ```
 prs.agent.go_to_target_object(feature='Seat')
 ```
+Walk towards and grab the target object
+```
+prs.agent.goto_and_grasp('apple')
+```
 Release the held object
 ```
 depth_m = prs.agent.get_depth(0)
@@ -118,6 +122,15 @@ Retrieve camera semantic segmentation, specifying mode (0 for head camera, 1 for
 ```
 seg, tags = prs.agent.get_segmentation(0)
 ```
+Head camera twisted downwards
+```
+prs.agent.joint_control(joint_id=4, target=20)
+```
+Using the camera to observe the surroundings with the given angle
+```
+prs.agent.observation(degree=0, camera=0)
+```
+    prs.agent.observation(camera=0, degree=0)
 Request Visual Interaction
 
 ```
@@ -127,7 +140,8 @@ This function requests an interaction with the visual system.
 Input: A two-dimensional matrix marking the target and the operation type:
 0: recognize
 1: grasp
-2, etc.
+2: approach target
+3, etc.
 ```
 prs.agent.interaction()
 ```
