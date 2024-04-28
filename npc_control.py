@@ -316,12 +316,12 @@ class Npc(object):
             n = random_number(13)
             # n = i
             time.sleep(3)
-            print('############### now go to {} -'.format(self.env.landmark_list[n]), i)
+            # print('############### now go to {} -'.format(self.env.landmark_list[n]), i)
             destination = self.env.landmark[self.env.landmark_list[n]][1]
             print(n, destination)
             go_res = self.go_to_place(self.env.landmark_list[n], 1)
-            if go_res:
-                print('good good good good good for {} -'.format(self.env.landmark_list[n]), i)
+            # if go_res:
+            #     print('good good good for {} -'.format(self.env.landmark_list[n]), i)
             # action_id = self.go_to_here(destination)
             # while True:
             #     time.sleep(1)
