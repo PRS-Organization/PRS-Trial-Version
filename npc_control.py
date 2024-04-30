@@ -1156,6 +1156,32 @@ class Agent(object):
         res = self.goto_target_goal(pos, distance, 3, 10)
         return res
 
+    def site_view(self, pos=(0, 0, 0)):
+        try:
+            x, y, z = pos['x'], pos['y'], pos['z']
+        except:
+            x, y, z = pos[0], pos[1], pos[2]
+        if -0.2 < y:
+            y = 3
+        elif -5 < y:
+            y = -2
+        else:
+            y = -10
+        ins = {"requestIndex": 0,"targetType": 12,"siteVisionPos": {"x": x, "y": y, "z": z}}
+        r_id = self.server.send_data(2, ins, 1)
+        receive = self.wait_for_respond(r_id, 30)
+        if not receive: return None
+        img = json.loads(receive["statusDetail"])
+        im = img["multiVisionBytes"][0]['bytes']
+        byte_array = bytes(im)
+        nparr = np.frombuffer(byte_array, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # Convert image byte stream to Image object
+        # cv2.imshow('image', image)
+        # cv2.waitKey(15)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        return image
+
     def go_to_destination(self, tar_location, ids=0):
         location_now, outcome = None, 0
         try:
