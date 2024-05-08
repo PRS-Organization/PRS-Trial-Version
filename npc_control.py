@@ -792,7 +792,7 @@ class Agent(object):
         if not obj_info1:
             return 0
         pos_relative = eval(obj_info1['information'])['position']
-        print(obj_info1, '---------IK relative position---')
+        # print(obj_info1, '---------IK relative position---')
         joint_targets = self.ik_process(pos_relative['x'], 0, pos_relative['z'])
         return joint_targets
 
@@ -801,7 +801,7 @@ class Agent(object):
                           "actionPara": json.dumps({'result': 1, 'data': joints_tar})}
         r_id = self.server.send_data(5, target_execute, 1)
         robot_info1 = self.wait_for_respond(r_id, 300)
-        print(robot_info1, '======---------IK perform')
+        # print(robot_info1, '======---------IK perform')
         return robot_info1
 
     def grasp_object(self, obj_id):
@@ -820,8 +820,9 @@ class Agent(object):
             r_id = self.server.send_data(5, release_execute, 1)
             robot_info3 = self.wait_for_respond(r_id, 30)
             if robot_info3:
-                print(robot_info3, '======---------release')
+                # print(robot_info3, '======---------release')
                 self.is_grasp = None
+            result = self.joint_control(5, 0)
             return robot_info3
         return None
 
