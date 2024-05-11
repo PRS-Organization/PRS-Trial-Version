@@ -399,10 +399,11 @@ class Server(object):
     def object_nearby_detect(self, obj_id=0):
         instruction = {"requestIndex": 1, "targetType": 20, "targetId": obj_id}
         r_id = self.send_data(2, instruction, 1)
-        object_info = self.wait_for_respond(r_id, 30)
+        object_info = self.wait_for_respond(r_id, 50)
         if object_info:
             object_info = eval(object_info['statusDetail'])
-        return object_info['touchedIds']
+            return object_info['touchedIds']
+        return None
 
     def object_transform(self, obj_type=0, target_id=4, pos=(0, 0, 0), rotation=0):
         # obj_type = 0: npc, obj_type = 1: items in the env
