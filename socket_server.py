@@ -377,19 +377,47 @@ class Server(object):
         else:
             return False  # No longer receiving messages
 
+    def wait_for_respond(self, id, times=15):
+        info = None
+        for ii in range(int(times)):
+            time.sleep(0.1)
+            try:
+                info = self.notes[id]
+                break
+            except Exception as e:
+                pass
+        return info
+
     def object_query(self, obj_id=0):
         instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
         r_id = self.send_data(2, instruction, 1)
-        object_info = None
-        for ii in range(30):
-            time.sleep(0.1)
-            try:
-                object_info = self.notes[r_id]
-                break
-            except:
-                pass
+        object_info = self.wait_for_respond(r_id, 30)
         if object_info:
             object_info = eval(object_info['statusDetail'])
+        return object_info
+
+    def object_nearby_detect(self, obj_id=0):
+        instruction = {"requestIndex": 1, "targetType": 20, "targetId": obj_id}
+        r_id = self.send_data(2, instruction, 1)
+        object_info = self.wait_for_respond(r_id, 30)
+        if object_info:
+            object_info = eval(object_info['statusDetail'])
+        return object_info['touchedIds']
+
+    def object_transform(self, obj_type=0, target_id=4, pos=(0, 0, 0), rotation=0):
+        # obj_type = 0: npc, obj_type = 1: items in the env
+        try:
+            position = {"x": pos[0], "y": pos[1], "z": pos[2]}
+        except:
+            position = {"x": pos['x'], "y": pos['y'], "z": pos['z']}
+        instruction = {"requestIndex": 1, "objectTransformHandles": []}
+        para = {"objectType": obj_type, "objectId": target_id, "objectPos": position, "objectDir":
+            {"x": 0, "y": 90, "z": 0}}
+        # para = json.dumps(para)
+        instruction['objectTransformHandles'].append(para)
+        #       {"objectType":1,"objectId":10,"objectPos":{"x":5,"y":3,"z":5},"objectDir":{"x":90,"y":0,"z":0}}
+        r_id = self.send_data(7, instruction, 1)
+        object_info = self.wait_for_respond(r_id, 30)
         return object_info
 
     def env_finish(self, process, npcs):
