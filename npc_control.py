@@ -242,7 +242,7 @@ class Npc(object):
             # translate the grid pos to the world pos
             pos_i, pos_j = self.server.maps.get_an_aligned_world_coordinate_randomly(floor, p_i, p_j)
             position_go = (pos_i, self.server.maps.floors[floor], pos_j)
-            print(' now plan to {}'.format(position_go))
+            # print(' now plan to {}'.format(position_go))
             for i in range(2):
                 if not self.running or self.server.stop_event.is_set() or not self.server.state:
                     return 0
@@ -275,10 +275,10 @@ class Npc(object):
                     if np.sqrt((point[0] - p_i) ** 2 + (point[1] - p_j) ** 2) < delete_dis:
                         del point_list[i]
             elif result_go == 1:
-                print('$$$$$ arrive at: ', position_go)
+                # print('$$$$$ arrive at: ', position_go)
                 return result_go
-        if result_go == 0:
-            print('$$$$$not arrive: ', position_tar)
+        if result_go == 0: pass
+            # print('$$$$$not arrive: ', position_tar)
         return result_go
 
     def go_to_place(self, tar, specific=1, rad=2, del_d=2, times=20):
@@ -506,7 +506,7 @@ class Npc(object):
                     res = self.action_execution(ins_template)
                     if res > 0:
                         self.action_state = tar_action
-                        print('*********successfully: ', tar_action, ' - ', tar_place)
+                        # print('*********successfully: ', tar_action, ' - ', tar_place)
                         time.sleep(2)
             time.sleep(0.5)
         return 1
@@ -514,7 +514,7 @@ class Npc(object):
     def npc_action(self, tar_action, tar_object=0):
         action_para = self.actions[tar_action]
         instruct = self.mapping_action_type[action_para[0]]
-        print(action_para, 'oooooooooo', instruct)
+        # print(action_para, 'oooooooooo', instruct)
         ins_template = copy.deepcopy(self.instruction_type[instruct])
         # ------------
         ins_template['npcId'] = self.person_id
@@ -549,22 +549,22 @@ class Npc(object):
         res = self.action_execution(ins_template)
         if res > 0:
             if res == 1:
-                time.sleep(1)
+                time.sleep(0.5)
             self.action_state = tar_action
-            print('*********successfully: ', tar_action, ' - ')
+            # print('*********successfully: ', tar_action, ' - ')
         return res
 
     def action_execution(self, ins):
         ins['actionPara'] = json.dumps(ins['actionPara'])
         action_id = self.server.send_data(1, ins, 1)
         res = 0
-        for ii in range(9):
+        for ii in range(20):
             time.sleep(0.3)
             try:
                 res = self.server.notes[action_id]['informResult']
                 if res > 1:
                     break
-                elif res == 1 or ii > 2:
+                elif res == 0 or ii > 2:
                     break
             except Exception as e:
                 pass
@@ -864,7 +864,7 @@ class Agent(object):
         end_time = time.time()
         # Calculate the running time of function A
         execution_time = end_time - start_time
-        print("function A ：", execution_time, "s")
+        print("Move forward: ", execution_time, "s")
         return 1
 
     def rotate_right(self, degree=10):
@@ -921,7 +921,7 @@ class Agent(object):
                 self.direction_degree = angle_degree
                 flo, xx, yy, is_o = self.server.maps.get_point_info(pos)
                 self.map_position_agent['x'], self.map_position_agent['y'], self.map_position_agent['floor'] = xx, yy, flo
-                print('dgree???????????????????//:', angle_degree)
+                # print('dgree???????????????????//:', angle_degree)
                 return pos, inf
         return pos, inf
 
@@ -960,7 +960,7 @@ class Agent(object):
             # translate the grid pos to the world pos
             pos_i, pos_j = self.server.maps.get_an_aligned_world_coordinate_randomly(floor, p_i, p_j)
             position_go = (pos_i, self.server.maps.floors[floor], pos_j)
-            print(' now plan to {}'.format(position_go))
+            # print(' now plan to {}'.format(position_go))
             for i in range(2):
                 if not self.running or self.server.stop_event.is_set() or not self.server.state:
                     return 0
@@ -993,10 +993,10 @@ class Agent(object):
                     if np.sqrt((point[0] - p_i) ** 2 + (point[1] - p_j) ** 2) < delete_dis:
                         del point_list[i]
             elif result_go == 1:
-                print('$$$$$ arrive at: ', position_go)
+                # print('$$$$$ arrive at: ', position_go)
                 return result_go
-        if result_go == 0:
-            print('$$$$$not arrive: ', position_tar)
+        if result_go == 0: pass
+            # print('$$$$$not arrive: ', position_tar)
         return result_go
 
     def observation_camera(self, camera_type=0):
@@ -1286,7 +1286,7 @@ class Agent(object):
         elif cross_product < 0: pass
         #     right
         else: pass
-        print(angle_degrees)
+        # print(angle_degrees)
         return angle_degrees
 
     def direction_adjust(self, position, accuracy=1):
@@ -1308,7 +1308,7 @@ class Agent(object):
     def calculate_distance(self, x_x, y_y):
         point1 = np.array([self.position_agent['x'], self.position_agent['y']])
         point2 = np.array([x_x, y_y])
-        print(point2, point1)
+        # print(point2, point1)
         distance = np.linalg.norm(point2 - point1)
         return distance
 
@@ -1332,7 +1332,7 @@ class Agent(object):
         # AT = SE3.Rt(A, t)
         # AT represents the 4 * 4 transformation matrix of the end effector
         sol = robot.ik(AT)
-        print(sol)
+        # print(sol)
         # print(robot.fkine([-0.11530289, 0.3, 0.24709773, 0.42730769, 0.72559458]))
         # print(eul2r(0.3, 1.4, 0.02))
         if sol[1]:
