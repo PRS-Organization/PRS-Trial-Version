@@ -663,6 +663,23 @@ class ObjectsData(object):
                     tar.append(obj_i)
         return tar
 
+    def get_object_name(self, object_id=1):
+        name = None
+        for obj in self.objects:
+            id = obj['itemId']
+            if id == object_id:
+                name = obj['itemName']
+        return name
+
+    def get_info_from_name(self, object_name):
+        result = None
+        for obj in self.objects:
+            for obj in self.objects:
+                na = obj['itemName']
+                if na == object_name:
+                    result = obj
+            return result
+
     def check_feedback(self, server, id):
         time.sleep(0.1)
         info = None
