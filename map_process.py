@@ -58,7 +58,7 @@ class RoomMap(object):
         random_y_j = np.random.uniform(point_j, point_j + accuracy)
         return random_x_i, random_y_j
 
-    def get_an_accessible_area(self, x, y, z, radius_meter=1.5, mode=0):
+    def get_an_accessible_area(self, x, y, z, radius_meter=1.5, mode=0, sort=1):
         # mode 0 represent the world position, 1 is the matrix map(x=floor_n, y=map_i, z=map_j)
         if not mode:
             floor, map_i, map_j, is_obstacle = self.get_point_info([x, y, z])
@@ -87,12 +87,15 @@ class RoomMap(object):
                                 too_close_to_obstacle = True
                     if not too_close_to_obstacle:
                         valid_points.append((i, j))
-        # Calculate the distance from each feasible point to a given point
-        distances = [np.sqrt((i - map_i) ** 2 + (j - map_j) ** 2) for i, j in valid_points]
-        # Sort feasible points in ascending order of distance
-        sorted_valid_points = [point for _, point in sorted(zip(distances, valid_points))]
-        print('here: ', len(sorted_valid_points), ' in radius ', radius_meter, ', scale', self.maps_info[floor]['scale'])
-        return floor, sorted_valid_points
+        if sort:
+            # Calculate the distance from each feasible point to a given point
+            distances = [np.sqrt((i - map_i) ** 2 + (j - map_j) ** 2) for i, j in valid_points]
+            # Sort feasible points in ascending order of distance
+            sorted_valid_points = [point for _, point in sorted(zip(distances, valid_points))]
+            print('here: ', len(sorted_valid_points), ' in radius ', radius_meter, ', scale', self.maps_info[floor]['scale'])
+            return floor, sorted_valid_points
+        else:
+            return floor, valid_points
 
     def add_room(self, json_data):
         # parsing map information
