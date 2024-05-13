@@ -49,7 +49,13 @@ class RoomMap(object):
         # else:
         #     ind = 0
         point_i, point_j = self.get_grid_position(ind, x, z)
-        return ind, point_i, point_j, self.maps_info[ind]['grid'][point_i][point_j]
+        try:
+            return ind, point_i, point_j, self.maps_info[ind]['grid'][point_i][point_j]
+        except:
+            i_max, j_max = np.array(self.maps_info[ind]['grid']).shape[0], np.array(self.maps_info[ind]['grid']).shape[
+                1]
+            p_i, p_j = min(point_i, i_max - 1), min(point_j, j_max - 1)
+            return ind, p_i, p_j, self.maps_info[ind]['grid'][p_i][p_j]
 
     def get_an_aligned_world_coordinate_randomly(self, floor, x, y, random=1):
         point_i, floor_layer, point_j = self.get_world_position(floor, x, y)
