@@ -579,6 +579,9 @@ class ObjectsData(object):
             seg_tag_data = json.load(file)
         with open('data/npc_data.json', 'r') as file:
             json_npc = json.load(file)
+        with open('D:\\github\\EmbodiedAI02\\VerticleSlice\\Assets\\StreamingAssets\\receptacleInfo.json', 'r') as file:
+            json_receptcle = json.load(file)
+        rece = json_receptcle['receptacleItemBounds']
         # decode JSON
         seg_data = []
         rgb_id = dict()
@@ -619,6 +622,49 @@ class ObjectsData(object):
         self.rgb_to_id = rgb_id
         self.characters = json_npc['npc']
         # print(env_rooms)
+        grab_obj = [
+            'BoxedChocolate01', 'InjectableMedicationBottle_2', 'InjectableMedicationBottle_1', 'Apple_2', 'Kiwi',
+            'BoxedCake02', 'ButterSauce', 'PlasticBottle03', 'BoxedCake01', 'PlasticBottle03WithGreenLid',
+            'WaterBottle_Blue_3',
+            'WaterBottle_Blue_1', 'PlasticBottle03WithYellowLid', 'TomatoSauce', 'Spoon_2', 'Tomato', 'Cup_3', 'Cup_2',
+            'RedBeansCan', 'BaggedCake02', 'RedChill', 'MeatCan03', 'MeatCan01', 'PeaCan01', 'Cup_1', 'MeatCan02',
+            'ChocolateSauce', 'BaggedCake01', 'Spoon_1', 'MobilePhone_3', 'PlasticBottle03WithRedLid',
+            'ChiliSauce', 'MobilePhone_1', 'ConsolegamingPad', 'MobilePhone_2', 'Spoon_3', 'BoxedCake03', 'HoneySauce',
+            'Apple_1', 'Banana', 'BaggedCake03', 'BoxedChocolate02', 'InjectableMedicationBottle_3',
+            'WaterBottle_Blue_2',
+            'PeaCan02', 'PlasticBottle03WithBlueLid', 'Apple_3', 'PeanutSauce']
+        items = dict()
+        for obj in self.objects:
+            name = obj['itemName']
+            fea = obj['features']
+            if "Grabable" in fea and name in grab_obj:
+                items[name] = dict()
+                items[name]["id"] = obj['itemId']
+                items[name]['position'] = obj['position']
+        # print(items)
+        self.grasp_items = items
+        self.receptacle_mark(rece)
+
+    def receptacle_mark(self, obj_rec):
+        recp = []
+        for rec in obj_rec:
+            id = rec['itemId']
+            obj = self.objects[id]
+            name, id = obj['itemName'], obj['itemId']
+            position = obj['position']
+            lis = rec['receptacleBounds']
+            x_max, x_min = lis[0]['x'], lis[0]['x']
+            z_max, z_min = lis[0]['z'], lis[0]['z']
+            for item in lis:
+                x_max = max(x_max, item['x'])
+                x_min = min(x_min, item['x'])
+                z_max = max(z_max, item['z'])
+                z_min = min(z_min, item['z'])
+            recp.append({'name': name, 'id': id, 'x_max': x_max, 'y': lis[0]['y'],
+                         'x_min': x_min, 'z_max': z_max, 'z_min': z_min})
+
+            # 输入楼层 地图i坐标 地图j坐标
+        self.receptacles = recp
 
     def point_determine(self, pos):
         point_P = {}
