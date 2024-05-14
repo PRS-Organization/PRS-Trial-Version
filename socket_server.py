@@ -622,6 +622,8 @@ class ObjectsData(object):
         self.segment_tag = seg_data
         self.rgb_to_id = rgb_id
         self.characters = json_npc['npc']
+        self.room_receptacles = None
+        self.sematic_map = [None, None, None]
         # print(env_rooms)
         grab_obj = [
             'BoxedChocolate01', 'InjectableMedicationBottle_2', 'InjectableMedicationBottle_1', 'Apple_2', 'Kiwi',
@@ -663,8 +665,6 @@ class ObjectsData(object):
                 z_min = min(z_min, item['z'])
             recp.append({'name': name, 'id': id, 'x_max': x_max, 'y': lis[0]['y'],
                          'x_min': x_min, 'z_max': z_max, 'z_min': z_min})
-
-            # 输入楼层 地图i坐标 地图j坐标
         self.receptacles = recp
 
     def point_determine(self, pos):
@@ -896,32 +896,32 @@ class PrsEnv(object):
     def receptacle_mark(self):
         # maps_0 = copy.deepcopy(self.server.maps.maps_info[0]['grid'])
         # maps_1 = copy.deepcopy(self.server.maps.maps_info[1]['grid'])
-        maps_2 = copy.deepcopy(self.server.maps.maps_info[2]['grid'])
-        record = dict()
-        for rece in self.objs_data.receptacles:
-            # {'name': name, 'id': id, 'x_max': x_max,'x_min': x_min, 'z_max': z_max, 'z_min': z_min}
-            x_max, x_min, z_max, z_min, y = rece['x_max'], rece['x_min'], rece['z_max'], rece['z_min'], rece['y']
-            floor, map_i1, map_j1, iso = self.server.maps.get_point_info((x_max, y, z_max))
-            floor, map_i2, map_j2, iso = self.server.maps.get_point_info((x_min, y, z_min))
-            map_i_min, map_i_max = min(map_i1, map_i2), max(map_i1, map_i2)
-            map_j_min, map_j_max = min(map_j1, map_j2), max(map_j1, map_j2)
-            for ii in range(map_i_min, map_i_max+1):
-                for jj in range(map_j_min, map_j_max+1):
-                    if maps_2[ii][jj] == 0:
-                        maps_2[ii][jj] = 2
-            loc = self.objs_data.point_determine((x_min, floor, z_max))
-            # print(rece['name'], loc)
-            rece['location'], rece['floor'] = loc, floor
-            rece['map_i_min'], rece['map_i_max'] = map_i_min, map_i_max
-            rece['map_j_min'], rece['map_j_max'] = map_j_min, map_j_max
-            try:
-                record[loc]['num'] += 1
-                record[loc]['receptacles'].append(rece)
-            except:
-                record[loc] = {'num': 1}
-                record[loc]['receptacles'] = [rece]
-        # print(record)
-        self.objs_data.room_receptacles = record
+        for floor_i in range(3):
+            maps_2 = copy.deepcopy(self.server.maps.maps_info[floor_i]['grid'])
+            record = dict()
+            for rece in self.objs_data.receptacles:
+                # {'name': name, 'id': id, 'x_max': x_max,'x_min': x_min, 'z_max': z_max, 'z_min': z_min}
+                x_max, x_min, z_max, z_min, y = rece['x_max'], rece['x_min'], rece['z_max'], rece['z_min'], rece['y']
+                floor, map_i1, map_j1, iso = self.server.maps.get_point_info((x_max, y, z_max))
+                floor, map_i2, map_j2, iso = self.server.maps.get_point_info((x_min, y, z_min))
+                map_i_min, map_i_max = min(map_i1, map_i2), max(map_i1, map_i2)
+                map_j_min, map_j_max = min(map_j1, map_j2), max(map_j1, map_j2)
+                for ii in range(map_i_min, map_i_max + 1):
+                    for jj in range(map_j_min, map_j_max + 1):
+                        if maps_2[ii][jj] == 0:
+                            maps_2[ii][jj] = 2
+                loc = self.objs_data.point_determine((x_min, floor, z_max))
+                rece['location'], rece['floor'] = loc, floor
+                rece['map_i_min'], rece['map_i_max'] = map_i_min, map_i_max
+                rece['map_j_min'], rece['map_j_max'] = map_j_min, map_j_max
+                try:
+                    record[loc]['num'] += 1
+                    record[loc]['receptacles'].append(rece)
+                except:
+                    record[loc] = {'num': 1}
+                    record[loc]['receptacles'] = [rece]
+            self.objs_data.room_receptacles = record
+            self.objs_data.sematic_map[floor_i] = maps_2
 
 
 if __name__ == '__main__':  # pragma nocover
