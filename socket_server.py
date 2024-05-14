@@ -144,7 +144,7 @@ class Server(object):
                     r = n_client[1].getpeername()
                     # print('===========perfect connection============')
                 except Exception as e:
-                    print(e, n_client[0], 'Connected closed now')
+                    print(e, n_client[0], 'Connected Closed Now')
                     try:
                         self.clients.remove(n_client)
                         if len(self.clients) == 0 and self.state == 2:
@@ -191,7 +191,8 @@ class Server(object):
     def message_process(self):
         while True:
             if not self.state or self.stop_event.is_set():
-                print(self.state, 'no process')
+                self.state = 0
+                print(self.state, 'Processing Completed')
                 break
             if len(self.messages) > 0:
                 for msg_i, msg in enumerate(self.messages):
@@ -428,15 +429,15 @@ class Server(object):
             process.wait()
         self.send_data(0, {"requestIndex": 10, "actionId": 1}, 0)
         # movement demo
-        print('00100')
+        # print('00100')
         self.state = 0
         for npc in npcs:
             npc.running = 0
         self.stop_event.set()
         self.sock.close()
-        print(self.state, type(self.state))
+        # print(self.state, type(self.state))
         print(threading.active_count(), ' ------ env is ready to end')
-        time.sleep(5)
+        time.sleep(3)
         print(threading.active_count(), ' ------ thank you for using')
 
 
@@ -850,6 +851,7 @@ class PrsEnv(object):
         self.task = {'type': None, 'npc': None, 'object': None, 'target': None, 'state': 0, 'result': None}
         self.npcs = [npc_0, npc_1, npc_2, npc_3, npc_4, npc_5, npc_6, npc_7, npc_8, npc_9]
         self.agent.npcs = self.npcs
+        self.receptacle_mark()
         time.sleep(1)
 
         # # --------------------------robot ----------------------
@@ -890,6 +892,40 @@ class PrsEnv(object):
         if object_info:
             object_info = eval(object_info['statusDetail'])
         return object_info
+
+    def receptacle_mark(self):
+        # 获取二维网格地图的信息,输入是世界坐标[-10.1, 0.1, -6.1], 输出是 楼层 map_i map_j 是否障碍物
+        self.server.maps.get_point_info({'x': -10.1, 'y': 0.1, 'z': -6.1})
+        # 输入楼层 地图i坐标 地图j坐标
+        self.server.maps.get_world_position(1, 89, 108)
+        # maps_0 = copy.deepcopy(self.server.maps.maps_info[0]['grid'])
+        # maps_1 = copy.deepcopy(self.server.maps.maps_info[1]['grid'])
+        maps_2 = copy.deepcopy(self.server.maps.maps_info[2]['grid'])
+        record = dict()
+        for rece in self.objs_data.receptacles:
+            # {'name': name, 'id': id, 'x_max': x_max,'x_min': x_min, 'z_max': z_max, 'z_min': z_min}
+            x_max, x_min, z_max, z_min, y = rece['x_max'], rece['x_min'], rece['z_max'], rece['z_min'], rece['y']
+            floor, map_i1, map_j1, iso = self.server.maps.get_point_info((x_max, y, z_max))
+            floor, map_i2, map_j2, iso = self.server.maps.get_point_info((x_min, y, z_min))
+            map_i_min, map_i_max = min(map_i1, map_i2), max(map_i1, map_i2)
+            map_j_min, map_j_max = min(map_j1, map_j2), max(map_j1, map_j2)
+            for ii in range(map_i_min, map_i_max+1):
+                for jj in range(map_j_min, map_j_max+1):
+                    if maps_2[ii][jj] == 0:
+                        maps_2[ii][jj] = 2
+            loc = self.objs_data.point_determine((x_min, floor, z_max))
+            # print(rece['name'], loc)
+            rece['location'], rece['floor'] = loc, floor
+            rece['map_i_min'], rece['map_i_max'] = map_i_min, map_i_max
+            rece['map_j_min'], rece['map_j_max'] = map_j_min, map_j_max
+            try:
+                record[loc]['num'] += 1
+                record[loc]['receptacles'].append(rece)
+            except:
+                record[loc] = {'num': 1}
+                record[loc]['receptacles'] = [rece]
+        # print(record)
+        self.objs_data.room_receptacles = record
 
 
 if __name__ == '__main__':  # pragma nocover
