@@ -664,7 +664,7 @@ class ObjectsData(object):
                 z_max = max(z_max, item['z'])
                 z_min = min(z_min, item['z'])
             recp.append({'name': name, 'id': id, 'x_max': x_max, 'y': lis[0]['y'],
-                         'x_min': x_min, 'z_max': z_max, 'z_min': z_min})
+                         'x_min': x_min, 'z_max': z_max, 'z_min': z_min, 'position': position})
         self.receptacles = recp
 
     def point_determine(self, pos):
