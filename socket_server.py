@@ -894,10 +894,6 @@ class PrsEnv(object):
         return object_info
 
     def receptacle_mark(self):
-        # 获取二维网格地图的信息,输入是世界坐标[-10.1, 0.1, -6.1], 输出是 楼层 map_i map_j 是否障碍物
-        self.server.maps.get_point_info({'x': -10.1, 'y': 0.1, 'z': -6.1})
-        # 输入楼层 地图i坐标 地图j坐标
-        self.server.maps.get_world_position(1, 89, 108)
         # maps_0 = copy.deepcopy(self.server.maps.maps_info[0]['grid'])
         # maps_1 = copy.deepcopy(self.server.maps.maps_info[1]['grid'])
         maps_2 = copy.deepcopy(self.server.maps.maps_info[2]['grid'])
