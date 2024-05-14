@@ -939,7 +939,7 @@ class Agent(object):
         re_id = self.server.send_data(5, command, 1)
         return re_id
 
-    def goto_target_goal(self, position_tar, radius=1, delete_dis=3, times=6, position_mode=0):
+    def goto_target_goal(self, position_tar, radius=1, delete_dis=3, times=6, position_mode=0, accurate=0):
         # 0 (world pos) position_tar:(0.5, 0.1, 1.2), 1: (x=floor_n, y=map_i, z=map_j)
         try:
             xx, yy, zz = position_tar[0], position_tar[1], position_tar[2]
@@ -964,6 +964,8 @@ class Agent(object):
             for i in range(2):
                 if not self.running or self.server.stop_event.is_set() or not self.server.state:
                     return 0
+                if accurate:
+                    position_go = (xx, yy, zz)
                 action_id = self.go_to_there(position_go)
                 result = 0
                 while True:
@@ -987,6 +989,7 @@ class Agent(object):
                             break
                 time.sleep(2)
             if result_go == 0:
+                accurate = 0
                 # Reverse loop deletion of points with a distance of 2
                 for i in range(len(point_list) - 1, -1, -1):
                     point = point_list[i]
