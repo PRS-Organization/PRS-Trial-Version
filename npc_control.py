@@ -868,10 +868,13 @@ class Agent(object):
         return 1
 
     def rotate_right(self, degree=10):
-        ins = {"requestIndex": 1, "actionId": 1, "actionPara": {"degree": degree}}
-        ins['actionPara'] = json.dumps(ins['actionPara'])
-        r_id = self.server.send_data(5, ins, 1)
-        res = self.wait_for_respond(r_id, 60)
+        result = [degree / 2]
+        for angle in result:
+            ins = {"requestIndex": 1, "actionId": 1, "actionPara": {"degree": angle}}
+            ins['actionPara'] = json.dumps(ins['actionPara'])
+            r_id = self.server.send_data(5, ins, 1)
+            res = self.wait_for_respond(r_id, 30)
+            time.sleep(0.5)
         return res
 
     def get_all_map(self):
