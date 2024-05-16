@@ -203,6 +203,8 @@ class Server(object):
                         self.state = 0
                     finally:
                         del self.messages[msg_i]
+            else:
+                time.sleep(0.01)
 
     def receive_data(self):
         while True:
@@ -220,7 +222,7 @@ class Server(object):
                             self.stop_event.set()
                     except:
                         pass
-
+            time.sleep(0.005)
             if not self.state or self.stop_event.is_set():
                 print(self.state, 'Connection closed')
                 self.sock.close()
@@ -791,7 +793,9 @@ class DevNull:
 
 
 class PrsEnv(object):
-    def __init__(self, is_print=1, not_test_mode=0):
+    def __init__(self, is_print=1, rendering=1, start_up_mode=0):
+        # is_print: 0 without print, 1 print information to screen;
+        # rendering=1 with unity render, 0 is headless mode;   start_up_mode: 0 manual, 1 automatic
         print("PRS environment beta is starting without interaction")
         print('Please open the Unity program (start.sh)')
         print('PRS challenge task and benchmark come soon!')
@@ -814,15 +818,19 @@ class PrsEnv(object):
         self.process = 0
         # executable_path = 'start.sh'
         executable_path = './unity/PRS.x86_64'
+        if rendering:
+            command_args = [executable_path]
+        else:
+            command_args = [executable_path, '-batchmode']
         try:
-            if not_test_mode:
+            if start_up_mode:
                 # Start the Shell script using subprocess.Popen and capture stdout and stderr
-                self.process = subprocess.Popen([executable_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                self.process = subprocess.Popen(command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 print("Starting Unity process...")
                 # If needed, you can add more processing logic here, such as waiting for the process to finish, etc.
         except Exception as e:
             # Catch any exceptions that occur during startup and print the error message
-            print(f"An error occurred: {e}")
+            print(f"An error occurred during beginning: {e}")
         # --- unity exe start ---
         while True:
             time.sleep(0.3)
