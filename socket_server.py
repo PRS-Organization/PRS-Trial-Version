@@ -83,6 +83,8 @@ class MsgCmd(Enum):
     Server_Device_Inform_Request = 9
     Server_Device_Status_Request = 10
     Client_Device_Status_Response = 11
+    Server_Config_Inform = 12
+    Client_Config_Response = 13
 
 
 class Server(object):
@@ -99,7 +101,7 @@ class Server(object):
         serve_port = 8000  # search for available port starting from 8000
         # tcp_socket.connect((serve_ip,serve_port))
         # Connect to the server, establish a connection, with parameters in tuple form
-        tcp_address = ('localhost', 8000)
+        tcp_address = ('localhost', serve_port)
         # Provide a mechanism for checking ports
         sock_result = 0
         while not sock_result:
@@ -178,13 +180,6 @@ class Server(object):
             self.messages.append(data)
         # print('---------------------------------'， 'Received: msg')
         # ------------------parsing info from unity---------------------
-        # self.messages.append(data.decode())
-        try:
-            # self.unpack(data)
-            pass
-        except Exception as e:
-            print(data)
-            print(e)
         # self.send_back({'result': 1})
         return 1
 
@@ -204,7 +199,7 @@ class Server(object):
                     finally:
                         del self.messages[msg_i]
             else:
-                time.sleep(0.01)
+                time.sleep(0.005)
 
     def receive_data(self):
         while True:
@@ -235,7 +230,7 @@ class Server(object):
             for n_client in self.clients:
                 self.check_connection()
                 try:
-                    if cmd < 8:
+                    if cmd < 15:
                         data['requestIndex'] = self.count
                         self.count = self.count + 1
                     elif cmd == 0:
@@ -246,7 +241,7 @@ class Server(object):
                     return data['requestIndex']
                     break
                 except Exception as e:
-                    print(e, n_client[0])
+                    # print(e, n_client[0])
                     try:
                         self.clients.remove(n_client)
                         if len(self.clients) == 0:
@@ -295,39 +290,31 @@ class Server(object):
         # print("Received 1 packet->bodySize:{}, cmd:{}, recv:{}".format(headPack[0], cmd, is_recv))
         body = body.replace("false", "False")
         body = body.replace("true", "True")
+        body = body.replace("none", "None")
         p = json.loads(body)  # Decode and deserialize strings into JSON objects
         dict_data = ast.literal_eval(p)
         # self.information += str(cmd) + str(body)
         # Check the message type
-        # Instruction = 1
-        # Request = 2
-        # Result = 3
-        # State = 4
-        # Control = 5
-        # Information = 6
         dict_d = copy.deepcopy(dict_data)
         del dict_d['requestIndex']
         self.notes[dict_data['requestIndex']] = dict_d
         if cmd == "EXIT":
             self.state = 0
-            print('0、Env is over, exit!')
+            print('0. Env is over, exit!')
             return
         elif cmd == "Result": pass
             # print('3、Execution results from Unity', dict_data)
         elif cmd == "State": pass
             # Storing parameter information
             # print('4、Detailed information obtained id: {}'.format(dict_data['requestIndex']))
-            # # dict_map = ast.literal_eval(dict_ma["points"])
-        elif cmd == "Control":
-            pass
+        elif cmd == "Control": pass
         # IK is here
         elif cmd == "Information": pass
             # print("6、This is robot information", dict_data['requestIndex'], ', length- ', len(dict_data),)
         else:
-            print("\nUnknown cmd:{0}".format(cmd))
+            print("\nUnknown cmd: {0}".format(cmd))
         # Continue receiving messages
         #self._recv_bytes()
-        # print(self.notes)
 
     def unpack(self, data):
         headPack = struct.unpack('3I', bytearray(data[:self.headerSize]))
@@ -380,7 +367,7 @@ class Server(object):
         else:
             return False  # No longer receiving messages
 
-    def wait_for_respond(self, id, times=15):
+    def wait_for_respond(self, id, times=60):
         info = None
         for ii in range(int(times)):
             time.sleep(0.1)
@@ -392,9 +379,13 @@ class Server(object):
         return info
 
     def object_query(self, obj_id=0):
-        instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
-        r_id = self.send_data(2, instruction, 1)
-        object_info = self.wait_for_respond(r_id, 30)
+        for i in range(5):
+            instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
+            r_id = self.send_data(2, instruction, 1)
+            object_info = self.wait_for_respond(r_id, 60)
+            if object_info is not None:
+                break
+            time.sleep(0.1)
         if object_info:
             object_info = eval(object_info['statusDetail'])
         return object_info
@@ -402,10 +393,16 @@ class Server(object):
     def object_nearby_detect(self, obj_id=0):
         instruction = {"requestIndex": 1, "targetType": 20, "targetId": obj_id}
         r_id = self.send_data(2, instruction, 1)
-        object_info = self.wait_for_respond(r_id, 50)
+        object_info = self.wait_for_respond(r_id, 60)
         if object_info:
             object_info = eval(object_info['statusDetail'])
             return object_info['touchedIds']
+        if object_info:
+            object_info = eval(object_info['statusDetail'])
+            try:
+                return object_info['touchedIds']
+            except:
+                return None
         return None
 
     def object_transform(self, obj_type=0, target_id=4, pos=(0, 0, 0), rotation=0):
@@ -417,11 +414,10 @@ class Server(object):
         instruction = {"requestIndex": 1, "objectTransformHandles": []}
         para = {"objectType": obj_type, "objectId": target_id, "objectPos": position, "objectDir":
             {"x": 0, "y": 90, "z": 0}}
-        # para = json.dumps(para)
         instruction['objectTransformHandles'].append(para)
-        #       {"objectType":1,"objectId":10,"objectPos":{"x":5,"y":3,"z":5},"objectDir":{"x":90,"y":0,"z":0}}
-        r_id = self.send_data(7, instruction, 1)
-        object_info = self.wait_for_respond(r_id, 30)
+        r_id = self.send_data(12, instruction, 1)
+        object_info = self.wait_for_respond(r_id, 60)
+        time.sleep(0.2)
         return object_info
 
     def env_finish(self, process, npcs):
@@ -431,7 +427,6 @@ class Server(object):
             process.wait()
         self.send_data(0, {"requestIndex": 10, "actionId": 1}, 0)
         # movement demo
-        # print('00100')
         self.state = 0
         for npc in npcs:
             npc.running = 0
@@ -595,12 +590,13 @@ class ObjectsData(object):
             r_n, g_n, b_n = '{:.2f}'.format(r_n), '{:.2f}'.format(g_n), '{:.2f}'.format(b_n)
             rgb = (r_n, g_n, b_n)
             rgb_id[rgb] = index_tag
+            if item_tag['tag'] == "Untagged":
+                self.background = rgb
 
         env_objects = []
         for json_i in json_data['statusDetails']:
             data = json.loads(json_i)
             env_objects.append(data)
-
         env_rooms = []
         for json_i in room_data['statusDetails']:
             data = json.loads(json_i)
@@ -616,7 +612,16 @@ class ObjectsData(object):
             # na = name.split('_')
             room_index.append({'name': name, 'x': [min(xx), max(xx)], 'y': roo['roomCenter']['y'], 'z': [min(zz), max(zz)]})
             # print('----------------')
-
+        buliding_rooms = [dict(), dict(), dict()]
+        for ro in env_rooms:
+            y = ro['roomCenter']['y']
+            if y > -0.8:
+                buliding_rooms[2][ro['roomName']] = ro
+            elif y > -10:
+                buliding_rooms[1][ro['roomName']] = ro
+            else:
+                buliding_rooms[0][ro['roomName']] = ro
+        self.buliding_rooms = buliding_rooms
         self.room_area = room_index
 
         self.objects = env_objects
@@ -648,6 +653,130 @@ class ObjectsData(object):
                 items[name]['position'] = obj['position']
         # print(items)
         self.grasp_items = items
+        receptacles_information = {'F3_KitchenRoom': {'receptacles': [
+            {'name': 'Small Table (3)', 'feature': 'yellow', 'pos': {'x': -15.496, 'y': 0.0, 'z': -8.361}},
+            {'name': 'Table', 'feature': 'wooden dining', 'pos': {'x': -15.996, 'y': 0.0, 'z': -5.042}},
+            {'name': 'Kitchen Counter', 'feature': 'left', 'pos': {'x': -10.483, 'y': 0.0, 'z': -4.688}},
+            {'name': 'Kitchen Wardrobe', 'feature': 'wooden high', 'pos': {'x': -10.527, 'y': 0.0, 'z': -6.603}},
+            {'name': 'Dinner Counter', 'feature': 'middle', 'pos': {'x': -13.109, 'y': 0.0, 'z': -6.124}}]},
+            'F3_Bedroom_5': {'receptacles': [{'name': 'Table', 'feature': 'sturdy',
+                                              'pos': {'x': 13.58, 'y': 0.01, 'z': -27.902}},
+                                             {'name': 'Bed', 'feature': 'stylish',
+                                              'pos': {'x': 14.683, 'y': 0.01, 'z': -28.336}}]},
+            'F2_HallRoom02': {'receptacles': [{'name': 'Table (1)', 'feature': '',
+                                               'pos': {'x': 26.88, 'y': -5.167, 'z': -7.638}},
+                                              {'name': 'Table (2)', 'feature': '',
+                                               'pos': {'x': 26.88, 'y': -5.167, 'z': -5.174}}]},
+            'F2_HallRoom03': {'receptacles': [{'name': 'Table (1)', 'feature': '',
+                                               'pos': {'x': 26.073, 'y': -5.167, 'z': 4.748}},
+                                              {'name': 'Reception Counter', 'feature': '',
+                                               'pos': {'x': 21.354, 'y': -5.167, 'z': 5.55}},
+                                              {'name': 'Table (3)', 'feature': '',
+                                               'pos': {'x': 28.461, 'y': -5.167, 'z': 4.516}},
+                                              {'name': 'Table (2)', 'feature': '',
+                                               'pos': {'x': 27.206, 'y': -5.167, 'z': 5.7}},
+                                              {'name': 'Table (4)', 'feature': '',
+                                               'pos': {'x': 28.461, 'y': -5.167, 'z': 6.89}}]},
+            'F3_HallRoom02': {'receptacles': [{'name': 'Table (1)', 'feature': 'wall-adjacent',
+                                               'pos': {'x': 26.88, 'y': 0.0, 'z': -7.638}},
+                                              {'name': 'Table (2)', 'feature': 'light brown',
+                                               'pos': {'x': 26.88, 'y': 0.0, 'z': -5.174}}]},
+            'F3_OfficeSpaceRoom': {'receptacles': [{'name': 'Desk (8)', 'feature': 'rectangular',
+                                                    'pos': {'x': 2.841, 'y': -0.002,
+                                                            'z': 3.755}},
+                                                   {'name': 'Desk (3)', 'feature': 'compact',
+                                                    'pos': {'x': 7.973, 'y': -0.002,
+                                                            'z': 7.732}},
+                                                   {'name': 'Desk (4)', 'feature': 'modern',
+                                                    'pos': {'x': 1.812, 'y': -0.003,
+                                                            'z': 3.755}},
+                                                   {'name': 'Desk (6)', 'feature': 'wooden',
+                                                    'pos': {'x': 2.836, 'y': -0.002,
+                                                            'z': 7.745}},
+                                                   {'name': 'Desk (2)', 'feature': 'functional',
+                                                    'pos': {'x': 7.978, 'y': -0.002,
+                                                            'z': 3.784}},
+                                                   {'name': 'Desk (1)', 'feature': 'office',
+                                                    'pos': {'x': 6.949, 'y': -0.003,
+                                                            'z': 3.784}},
+                                                   {'name': 'Side Table', 'feature': 'tall',
+                                                    'pos': {'x': 4.838, 'y': 0.0, 'z': 5.93}},
+                                                   {'name': 'Desk (7)', 'feature': 'office',
+                                                    'pos': {'x': 6.944, 'y': -0.003,
+                                                            'z': 7.732}},
+                                                   {'name': 'Desk (5)', 'feature': 'work',
+                                                    'pos': {'x': 1.807, 'y': -0.003,
+                                                            'z': 7.745}}]}, 'F3_Bedroom_3': {
+                'receptacles': [
+                    {'name': 'Table', 'feature': 'wall-mounted', 'pos': {'x': 13.58, 'y': 0.01, 'z': -20.22}},
+                    {'name': 'Bed', 'feature': 'modern', 'pos': {'x': 14.683, 'y': 0.01, 'z': -20.654}}]},
+            'F3_HallRoom01': {'receptacles': [{'name': 'Polygon Table', 'feature': 'stone',
+                                               'pos': {'x': 12.727, 'y': 0.0, 'z': -5.639}}]},
+            'F3_GymRoom': {'receptacles': [{'name': 'Furniture_Gym_Desk', 'feature': 'dark gray',
+                                            'pos': {'x': 10.945, 'y': 0.0, 'z': 3.209}}]},
+            'F3_Bedroom_4': {'receptacles': [{'name': 'Table', 'feature': 'minimalist',
+                                              'pos': {'x': 25.7, 'y': 0.01, 'z': -29.25}},
+                                             {'name': 'Bed', 'feature': 'dark',
+                                              'pos': {'x': 24.597, 'y': 0.01, 'z': -28.816}}]},
+            'F3_OfficeRoom01': {'receptacles': [{'name': 'Desk 4', 'feature': 'versatile',
+                                                 'pos': {'x': -3.505, 'y': 0.0, 'z': -6.917}}]},
+            'F3_LivingRoom': {'receptacles': [{'name': 'Dinner Counter', 'feature': 'marble',
+                                               'pos': {'x': -3.09, 'y': 0.0, 'z': 5.787}},
+                                              {'name': 'Coffee table', 'feature': 'low',
+                                               'pos': {'x': -6.92, 'y': 0.041, 'z': 6.23}}]},
+            'F3_HallRoom03': {'receptacles': [{'name': 'Table (4)', 'feature': 'square',
+                                               'pos': {'x': 28.461, 'y': 0.0, 'z': 6.89}},
+                                              {'name': 'Reception Counter',
+                                               'feature': 'marmoreal',
+                                               'pos': {'x': 21.354, 'y': 0.0, 'z': 5.55}},
+                                              {'name': 'Table (2)', 'feature': 'rectangular',
+                                               'pos': {'x': 27.206, 'y': 0.0, 'z': 5.7}},
+                                              {'name': 'Table (3)', 'feature': 'small',
+                                               'pos': {'x': 28.461, 'y': 0.0, 'z': 4.516}},
+                                              {'name': 'Table (1)', 'feature': 'dark',
+                                               'pos': {'x': 26.073, 'y': 0.0, 'z': 4.748}}]},
+            'F3_Bedroom_9': {'receptacles': [{'name': 'Table', 'feature': 'elegant',
+                                              'pos': {'x': 13.58, 'y': 0.01, 'z': -43.28}},
+                                             {'name': 'Bed', 'feature': 'comfortable',
+                                              'pos': {'x': 14.683, 'y': 0.01, 'z': -43.714}}]},
+            'F3_Bedroom_2': {'receptacles': [{'name': 'Table', 'feature': 'rectangular',
+                                              'pos': {'x': 25.7, 'y': 0.01, 'z': -21.56}},
+                                             {'name': 'Bed', 'feature': 'simple',
+                                              'pos': {'x': 24.597, 'y': 0.01, 'z': -21.126}}]},
+            'F3_Bedroom_0': {'receptacles': [{'name': 'Table', 'feature': 'wooden',
+                                              'pos': {'x': 25.7, 'y': 0.01, 'z': -13.878}},
+                                             {'name': 'Bed', 'feature': 'wonderful',
+                                              'pos': {'x': 24.597, 'y': 0.01, 'z': -13.444}}]},
+            'F3_Bedroom_7': {'receptacles': [{'name': 'Table', 'feature': 'brown',
+                                              'pos': {'x': 13.58, 'y': 0.01, 'z': -35.59}},
+                                             {'name': 'Bed', 'feature': 'dark colored',
+                                              'pos': {'x': 14.683, 'y': 0.01, 'z': -36.024}}]},
+            'F3_Bedroom_6': {'receptacles': [{'name': 'Table', 'feature': 'decorative',
+                                              'pos': {'x': 25.7, 'y': 0.01, 'z': -36.938}},
+                                             {'name': 'Bed', 'feature': 'contemporary',
+                                              'pos': {'x': 24.597, 'y': 0.01, 'z': -36.504}}]},
+            'F3_ConferenceRoom': {'receptacles': [
+                {'name': 'Meeting Table Large', 'feature': 'elongated',
+                 'pos': {'x': 4.88, 'y': 0.0, 'z': -5.752}}]}, 'F3_Bedroom_1': {'receptacles': [
+                {'name': 'Table', 'feature': 'rectangular', 'pos': {'x': 13.58, 'y': 0.01, 'z': -12.53}},
+                {'name': 'Bed', 'feature': 'tidy', 'pos': {'x': 14.683, 'y': 0.01, 'z': -12.964}}]}, 'F3_Bedroom_11': {
+                'receptacles': [{'name': 'Table', 'feature': 'wooden', 'pos': {'x': 13.58, 'y': 0.01, 'z': -50.962}},
+                                {'name': 'Bed', 'feature': 'dark', 'pos': {'x': 14.683, 'y': 0.01, 'z': -51.396}}]},
+            'F3_Bedroom_8': {'receptacles': [{'name': 'Table', 'feature': 'personal',
+                                              'pos': {'x': 25.7, 'y': 0.01, 'z': -44.62}},
+                                             {'name': 'Bed', 'feature': 'single',
+                                              'pos': {'x': 24.597, 'y': 0.01, 'z': -44.186}}]},
+            'F2_HallRoom01': {'receptacles': [{'name': 'Polygon Table', 'feature': '',
+                                               'pos': {'x': 12.727, 'y': -5.167, 'z': -5.639}}]},
+            'F2_MedicalRoom03': {'receptacles': [{'name': 'Desk 4', 'feature': '',
+                                                  'pos': {'x': -13.347, 'y': -5.172,
+                                                          'z': -6.917}}]}, 'F3_OfficeRoom02': {
+                'receptacles': [{'name': 'Desk 3', 'feature': 'office', 'pos': {'x': -6.415, 'y': 0.0, 'z': -6.654}}]},
+            'F3_Bedroom_10': {'receptacles': [{'name': 'Table', 'feature': 'wooden',
+                                               'pos': {'x': 25.7, 'y': 0.01, 'z': -52.31}},
+                                              {'name': 'Bed', 'feature': 'square',
+                                               'pos': {'x': 24.597, 'y': 0.01, 'z': -51.876}}]}}
+        self.receptacles_information = receptacles_information
         self.receptacle_mark(rece)
 
     def receptacle_mark(self, obj_rec):
@@ -681,23 +810,20 @@ class ObjectsData(object):
                     room_i['z'][0] <= point_P['z'] <= room_i['z'][1]):
                 if abs(point_P['y']-room_i['y']) < 3:
                     res = room_i['name']
-                    # print ("Point P is in room F3_Bedroom")
         return res
 
     def object_parsing(self, ins, target=['Chair','Stool']):
-        print('near items: ', ins)
         datas = eval(ins['statusDetail'])
         obj_closed = datas['closeRangeItemIds']
-        objec = None
+        object = None
         for i, obj in enumerate(obj_closed):
             name = self.objects[obj]['itemName']
             for ttt in target:
                 if ttt.lower() in name.lower():
-            # if target in name:
                     print("The target: ", name, obj, self.objects[obj])
                     return obj
-        print('There is no {}'.format(target))
-        return objec
+        # print('There is no {}'.format(target))
+        return object
         # return None
 
     def object_query(self, target=['Chair', 'Stool']):
@@ -706,7 +832,6 @@ class ObjectsData(object):
             obj_i = obj['itemId']
             obj_full_name = obj['itemName']
             obj_now = ''.join([char for char in obj_full_name if not char.isdigit()])
-            # print(name)
             for name in target:
                 if name.lower() == obj_now.lower():
                     tar.append(obj_i)
@@ -723,11 +848,10 @@ class ObjectsData(object):
     def get_info_from_name(self, object_name):
         result = None
         for obj in self.objects:
-            for obj in self.objects:
-                na = obj['itemName']
-                if na == object_name:
-                    result = obj
-            return result
+            na = obj['itemName']
+            if na == object_name:
+                result = obj
+        return result
 
     def check_feedback(self, server, id):
         time.sleep(0.1)
@@ -839,7 +963,7 @@ class PrsEnv(object):
         self.objs_data = ObjectsData()
         # --------------agent begin---------------
         self.agent = Agent(self.server, self.env_time, self.objs_data)
-        agent_thread = threading.Thread(target=agent_plan, args=(self.server, self.agent))
+        # agent_thread = threading.Thread(target=agent_plan, args=(self.server, self.agent))
         # 启动线程 机器人
         self.agent.get_all_map()
         # agent_thread.start()
@@ -860,7 +984,10 @@ class PrsEnv(object):
         self.npcs = [npc_0, npc_1, npc_2, npc_3, npc_4, npc_5, npc_6, npc_7, npc_8, npc_9]
         self.agent.npcs = self.npcs
         self.receptacle_mark()
-        time.sleep(1)
+        with open('data/npc_data.json', 'r') as file:
+            npc_data = json.load(file)
+        self.npc_data = npc_data
+        time.sleep(0.1)
 
         # # --------------------------robot ----------------------
 
@@ -889,14 +1016,16 @@ class PrsEnv(object):
 
     def sim_speed(self, speed):
         instruction = {"requestIndex": 1, "timeScale": speed}
-        action_id = self.server.send_data(7, instruction, 1)
-        self.env_time.time_multiplier *= speed
+        action_id = self.server.send_data(12, instruction, 0)
+        # print(self.env_time.time_multiplier, speed)
+        res = self.server.wait_for_respond(action_id, 10)
+        self.env_time.time_multiplier = speed
         return self.env_time.time_multiplier
 
     def object_query(self, obj_id=0):
         instruction = {"requestIndex": 0, "targetType": 1, "targetId": obj_id}
         r_id = self.server.send_data(2, instruction, 1)
-        object_info = self.agent.wait_for_respond(r_id, 30)
+        object_info = self.agent.wait_for_respond(r_id, 60)
         if object_info:
             object_info = eval(object_info['statusDetail'])
         return object_info
