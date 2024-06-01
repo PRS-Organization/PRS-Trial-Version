@@ -19,9 +19,11 @@ from spatialmath import SE3
 from spatialmath.base import *
 from collections import Counter
 
+
 def random_number(n):
     selected_number = np.random.randint(0, n)  # Generate a random number within the interval [0, n-1]
     return selected_number
+
 
 class Env(object):
     def __init__(self):
@@ -29,22 +31,6 @@ class Env(object):
         self.height_f2 = -5.2174
         self.height_f3 = -0.0499999
         f1, f2, f3 = self.height_f1, self.height_f2, self.height_f3
-        self.landmark = {
-            'warehouse': [(11.41, f1, -6.26, 'doorway'), (11.5, f1, -54, 'center')],
-            'laboratory': [(5.02, f2, 1.52, 'doorway'), (16.17, f2, 6.82, 'center')],
-            'clinic': [(-4.90, f2, -1.01, 'doorway'), (-3.14, f2, -5.02, 'center')],
-            'meeting room': [(4.83, f3, -2.13, 'doorway'), (2, f3, -4.04, 'center')],
-            'office': [(5.16, f3, 1.39, 'doorway'),(3.92, f3, 6.4, 'sit'), (7.43, f3, 7.35, 'center'), (8.7, f3, 6.3, 'center'), (4.83, f3, 3.11, 'center')],
-            'kitchen': [(-15.44, f3, -1.81, 'doorway'), (-18.3, f3, -5.9, 'free'), (-14.77, f3, -7.07, 'center')],
-            'restroom': [(-4.9, f3, 1.39, 'doorway'), (-7.08, f3, 8.01, 'center')],
-            'bedroom': [(19.88, f2, -1.2, 'gate'), (13.4, f3, -22.74, 'center'), (17.68, f3, -22.03, 'doorway'), (11.73, f3, -21.04, 'center')],
-            'lobby': [(23.94, f3, 3.1, 'doorway'), (23.12, f3, 7.19, 'center')],
-            'mark': [(19.61, f3, -0.35, '0'), (15.5, f3, -4.55, 1), (19.61, f3, -9.47, '2')],
-            'hallway': [(19.61, f3, -0.35, 'none'), (18.1, f3, 0.0, 'center')],
-            'hall': [(19.61, f3, -0.35, 'none'), (24.1, f3, -4.9, 'center')],
-            'wc': [(19.61, f3, -0.35, 'none'), (-12.9, f3, 2.1, 'center')],
-            'elevator': [(19.61, f3, -0.35, 'none'), (27.5, f3, -0.8, 'center')]
-        }
         self.landmark_list = [
             'warehouse',
             'laboratory',
@@ -195,7 +181,7 @@ class Npc(object):
             request_id = self.server.send_data(2,  {"requestIndex": 0, "targetType": 0, "targetId": self.person_id}, 1)
             time.sleep(0.1)
             info = None
-            for i in range(9):
+            for i in range(15):
                 try:
                     info = self.server.notes[request_id]
                     break
@@ -282,7 +268,7 @@ class Npc(object):
         return result_go
 
     def go_to_place(self, tar, specific=1, rad=2, del_d=2, times=20):
-        destination = self.env.landmark[tar][specific]
+        destination = self.env.location[tar][specific]
         print('^^^^^^^^^^^^ here will be ', destination)
         result = 0
         result = self.goto_randomly(destination, rad, del_d, times)
@@ -1095,13 +1081,14 @@ class Agent(object):
         re_id = self.server.send_data(5, command, 1)
         return re_id
 
-    def goto_target_goal(self, position_tar, radius=1, delete_dis=2, times=6, position_mode=0, accurate=0):
+    def goto_target_goal(self, position_tar, radius=1.0, delete_dis=3, times=6, position_mode=0,
+                         accurate=0, sort=1, inflation=0):
         # 0 (world pos) position_tar:(0.5, 0.1, 1.2), 1: (x=floor_n, y=map_i, z=map_j)
         try:
             xx, yy, zz = position_tar[0], position_tar[1], position_tar[2]
         except:
             xx, yy, zz = position_tar['x'], position_tar['y'], position_tar['z']
-        floor, point_list = self.server.maps.get_an_accessible_area(xx, yy, zz, radius, position_mode)
+        floor, point_list = self.server.maps.get_an_accessible_area(xx, yy, zz, radius, position_mode, sort, inflation)
         result_go = 0
         for i_try in range(times):
             if not self.running or self.server.stop_event.is_set() or not self.server.state:
