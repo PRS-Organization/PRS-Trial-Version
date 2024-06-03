@@ -1,6 +1,7 @@
 # PRS-Trial-Version
+## [PRS Delivery Benchmark](https://github.com/PRS-Organization/prs-delivery)
 Trial version for prs platform (python project). Please note that the complete experience requires downloading the Unity resource.
-The complete API documentation and task benchmark is comming soon!
+More API and dataset is coming soon!
 
 ## Quick Start Guide for PRS Platform Demo
 
@@ -55,5 +56,5 @@ Note: In this version, there's no function to end the environment due to its lon
 Stay tuned for the upcoming complete API documentation and task benchmarks!
 
 ## More API Guidance
-[NPC API](document/api.md)
+[PRS API](document/api.md)
 
