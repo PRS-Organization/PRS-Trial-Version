@@ -577,7 +577,7 @@ class ObjectsData(object):
             seg_tag_data = json.load(file)
         with open('data/npc_data.json', 'r') as file:
             json_npc = json.load(file)
-        with open('D:\\github\\EmbodiedAI02\\VerticleSlice\\Assets\\StreamingAssets\\receptacleInfo.json', 'r') as file:
+        with open('unity/PRS_Data/StreamingAssets/receptacleInfo.json', 'r') as file:
             json_receptcle = json.load(file)
         rece = json_receptcle['receptacleItemBounds']
         # decode JSON
